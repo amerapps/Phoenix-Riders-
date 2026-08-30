@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" id="htmlRoot">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>PHOENIX RIDER</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+<meta name="background-color" content="#000000">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Phoenix Rider">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#000000; --bg-panel:#090909; --bg-card:#0d0d0d; --line:#1c2433;
+    --cyan:#00f0ff; --magenta:#ff2bd6; --lime:#baff29; --amber:#ffb020; --red:#ff2953;
+    --text:#d9f7ff; --dim:#6b7c93; --font-body:'Tajawal',sans-serif;
+  }
+  html.lang-en{ --font-body:'Rajdhani',sans-serif; }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0; background:var(--bg-deep); color:var(--text); font-family:var(--font-body); min-height:100vh; overflow-x:hidden;}
+  body{
+    background-image:
+      linear-gradient(rgba(0,240,255,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,240,255,0.035) 1px, transparent 1px),
+      radial-gradient(ellipse at 20% -10%, rgba(255,43,214,0.10), transparent 45%),
+      radial-gradient(ellipse at 90% 0%, rgba(0,240,255,0.10), transparent 40%);
+    background-size:34px 34px, 34px 34px, auto, auto;
+  }
+  .mono{font-family:'Share Tech Mono',monospace;}
+  .scan{position:fixed; inset:0; pointer-events:none; z-index:999; opacity:.05;
+    background:repeating-linear-gradient(0deg, #fff 0px, transparent 1px, transparent 3px); mix-blend-mode:overlay;}
+
+  header.top{position:sticky; top:0; z-index:50; background:linear-gradient(180deg, rgba(5,6,10,0.97), rgba(5,6,10,0.85));
+    backdrop-filter:blur(6px); border-bottom:1px solid var(--line); padding:14px 16px 10px;}
+  .brand{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+  .brand h1{font-family:'Orbitron',sans-serif; font-size:19px; letter-spacing:2px; margin:0; color:var(--cyan);
+    text-shadow:0 0 8px rgba(0,240,255,0.55), 0 0 22px rgba(0,240,255,0.25); animation:flicker 6s infinite;}
+  @keyframes flicker{0%,96%,100%{opacity:1;} 97%{opacity:.6;} 98%{opacity:1;} 99%{opacity:.7;}}
+  .brand .sub{font-size:11px; color:var(--dim); letter-spacing:1px; margin-top:2px;}
+  .headright{display:flex; align-items:center; gap:10px;}
+  .clock{font-family:'Share Tech Mono',monospace; font-size:12px; color:var(--lime); direction:ltr;}
+  .langtoggle{display:flex; border:1px solid var(--line); border-radius:20px; overflow:hidden; cursor:pointer; font-family:'Share Tech Mono',monospace; font-size:11px;}
+  .langtoggle span{padding:5px 10px; color:var(--dim);}
+  .langtoggle span.on{background:var(--cyan); color:#05060a; font-weight:700;}
+  .printbtn{border:1px solid var(--line); background:none; color:var(--dim); font-size:11px; border-radius:20px; padding:6px 10px; cursor:pointer; font-family:'Share Tech Mono',monospace; white-space:nowrap;}
+  .printbtn:hover{border-color:var(--cyan); color:var(--cyan);}
+
+  /* ===== print report (hidden on screen, shown only when printing) ===== */
+  #printReport{display:none;}
+  @media print{
+    body *{visibility:hidden;}
+    #printReport, #printReport *{visibility:visible;}
+    #printReport{display:block; position:absolute; top:0; left:0; width:100%; background:#fff; color:#000; padding:20px;}
+    .scan, header.top, .vtabs, .fab, .sheet-bg, .lightbox, .toast{display:none !important;}
+    .pr-h1{font-family:Arial,sans-serif; font-size:20px; margin:0 0 2px; color:#000;}
+    .pr-sub{font-size:11px; color:#444; margin-bottom:18px;}
+    .pr-veh{margin-bottom:22px; page-break-inside:avoid;}
+    .pr-veh h2{font-size:15px; border-bottom:2px solid #000; padding-bottom:4px; margin-bottom:6px;}
+    .pr-meta{font-size:12px; color:#333; margin-bottom:8px;}
+    .pr-table{width:100%; border-collapse:collapse; font-size:11.5px;}
+    .pr-table th, .pr-table td{border:1px solid #999; padding:5px 6px; text-align:right;}
+    .pr-table th{background:#eee;}
+    .pr-total{text-align:left; font-size:12px; margin-top:6px; font-weight:bold;}
+    .pr-empty{font-size:12px; color:#555; font-style:italic;}
+  }
+
+  .vtabs{display:flex; gap:8px; overflow-x:auto; padding:12px 16px 4px; scrollbar-width:none;}
+  .vtabs::-webkit-scrollbar{display:none;}
+  .vtab{flex:0 0 auto; display:flex; align-items:center; gap:8px; padding:9px 14px; border-radius:3px; border:1px solid var(--line);
+    background:var(--bg-panel); color:var(--dim); cursor:pointer; white-space:nowrap; font-size:13px; transition:.15s;}
+  .vtab.active{border-color:var(--cyan); color:var(--cyan); box-shadow:0 0 12px rgba(0,240,255,0.35) inset, 0 0 10px rgba(0,240,255,0.2);
+    background:linear-gradient(180deg, rgba(0,240,255,0.08), transparent);}
+  .vtab .km{font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--dim); direction:ltr;}
+  .vtab.active .km{color:var(--lime);}
+  .vtab.add{border-style:dashed; color:var(--magenta); border-color:rgba(255,43,214,0.5);}
+
+  main{max-width:640px; margin:0 auto; padding:14px 14px 90px;}
+
+  .veh-card{border:1px solid var(--line); background:linear-gradient(160deg, var(--bg-card), var(--bg-panel));
+    border-radius:6px; padding:14px; margin-bottom:16px; position:relative; overflow:hidden;}
+  .veh-card::before{content:""; position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(115deg, transparent 40%, rgba(0,240,255,0.06) 50%, transparent 60%);}
+  .veh-head{display:flex; gap:12px; align-items:center;}
+  .veh-photo{width:64px; height:64px; border-radius:6px; border:1px solid var(--line); background:var(--bg-deep) center/cover no-repeat;
+    display:flex; align-items:center; justify-content:center; font-size:26px; flex:0 0 auto; cursor:pointer; color:var(--dim);}
+  .veh-info{flex:1; min-width:0;}
+  .veh-info .name{font-family:'Orbitron',sans-serif; font-size:15px; color:var(--text); letter-spacing:.5px;}
+  .veh-info .plate{font-size:12px; color:var(--dim); margin-top:2px;}
+  .odo{display:flex; align-items:baseline; gap:6px; margin-top:8px; flex-wrap:wrap;}
+  .odo .val{font-family:'Share Tech Mono',monospace; font-size:26px; color:var(--lime); text-shadow:0 0 10px rgba(186,255,41,0.4); direction:ltr;}
+  .odo .lbl{font-size:11px; color:var(--dim);}
+  .edit-km{background:none; border:1px solid var(--line); color:var(--cyan); font-size:11px; border-radius:3px; padding:4px 8px; cursor:pointer;}
+  .edit-veh{background:none; border:1px solid var(--line); color:var(--cyan); font-size:11.5px; border-radius:20px; padding:6px 12px; cursor:pointer; flex:0 0 auto; align-self:flex-start; white-space:nowrap;}
+
+  .tabbar{display:flex; gap:6px; margin:14px 0 12px; border-bottom:1px solid var(--line); align-items:center;}
+  .tabbtn{flex:1; text-align:center; padding:9px 4px; font-size:13px; color:var(--dim); cursor:pointer; border-bottom:2px solid transparent;
+    background:none; border-top:none; border-left:none; border-right:none; font-family:var(--font-body);}
+  .tabbtn.active{color:var(--cyan); border-bottom-color:var(--cyan); text-shadow:0 0 6px rgba(0,240,255,0.4);}
+  .infobtn{flex:0 0 auto; width:22px; height:22px; border-radius:50%; border:1px solid var(--line); color:var(--dim);
+    background:none; cursor:pointer; font-size:12px; font-family:'Share Tech Mono',monospace; line-height:1;}
+
+  .chk-item{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:11px 12px; border:1px solid var(--line);
+    border-radius:5px; margin-bottom:8px; background:var(--bg-card);}
+  .chk-item.overdue{border-color:rgba(255,41,83,0.6); box-shadow:0 0 10px rgba(255,41,83,0.15) inset;}
+  .chk-item.soon{border-color:rgba(255,176,32,0.5);}
+  .chk-item.ok{border-color:rgba(186,255,41,0.25);}
+  .chk-left .t{font-size:13.5px; color:var(--text);}
+  .chk-left .d{font-size:11px; color:var(--dim); margin-top:3px; font-family:'Share Tech Mono',monospace; display:block;}
+  .chk-status{font-size:11px; padding:4px 9px; border-radius:20px; white-space:nowrap; font-family:'Share Tech Mono',monospace;}
+  .chk-status.overdue{color:var(--red); background:rgba(255,41,83,0.1); border:1px solid rgba(255,41,83,0.4);}
+  .chk-status.soon{color:var(--amber); background:rgba(255,176,32,0.1); border:1px solid rgba(255,176,32,0.4);}
+  .chk-status.ok{color:var(--lime); background:rgba(186,255,41,0.08); border:1px solid rgba(186,255,41,0.3);}
+  .chk-status.none{color:var(--dim); background:rgba(255,255,255,0.03); border:1px solid var(--line);}
+
+  .rec{border:1px solid var(--line); background:var(--bg-card); border-radius:5px; padding:11px 12px; margin-bottom:9px; display:flex; gap:10px;}
+  .rec .thumb{width:46px; height:46px; border-radius:4px; object-fit:cover; border:1px solid var(--line); flex:0 0 auto; cursor:pointer;}
+  .rec .thumb.empty{display:flex; align-items:center; justify-content:center; color:var(--dim); font-size:18px; background:var(--bg-panel); cursor:default;}
+  .rec-body{flex:1; min-width:0;}
+  .rec-top{display:flex; justify-content:space-between; gap:6px;}
+  .rec-type{font-size:13.5px; color:var(--cyan);}
+  .rec-cost{font-family:'Share Tech Mono',monospace; font-size:12.5px; color:var(--lime); white-space:nowrap; direction:ltr;}
+  .rec-meta{font-size:11px; color:var(--dim); margin-top:3px; font-family:'Share Tech Mono',monospace; direction:ltr; display:inline-block;}
+  .rec-notes{font-size:12px; color:#a9c3d4; margin-top:5px; line-height:1.5;}
+  .rec-actions{display:flex; gap:14px; margin-top:6px;}
+  .rec-actions button{background:none; border:none; color:var(--dim); font-size:11px; cursor:pointer; padding:0;}
+  .rec-actions button.edit{color:var(--cyan);}
+
+  .empty-state{text-align:center; padding:40px 10px; color:var(--dim); font-size:13px;}
+
+  .fab{position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:60;
+    background:linear-gradient(135deg, var(--cyan), var(--magenta)); color:#05060a; border:none; padding:13px 26px;
+    border-radius:30px; font-family:'Orbitron',sans-serif; font-size:13px; font-weight:700;
+    box-shadow:0 0 20px rgba(0,240,255,0.4), 0 4px 14px rgba(0,0,0,0.5); cursor:pointer; letter-spacing:.5px;}
+  .sheet-bg{position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:70; display:none; align-items:flex-end;}
+  .sheet-bg.show{display:flex;}
+  .sheet{background:var(--bg-panel); border-top:1px solid var(--cyan); border-radius:14px 14px 0 0; width:100%; max-height:88vh;
+    overflow-y:auto; padding:18px 16px 26px; box-shadow:0 -10px 30px rgba(0,0,0,0.6);}
+  .sheet h2{font-family:'Orbitron',sans-serif; font-size:15px; color:var(--cyan); margin:0 0 14px;}
+  .sheet p{font-size:13px; color:#a9c3d4; line-height:1.8;}
+  .sheet ul{font-size:13px; color:#a9c3d4; line-height:1.8; padding-inline-start:18px; margin:8px 0;}
+  .field{margin-bottom:12px;}
+  .field label{display:block; font-size:12px; color:var(--dim); margin-bottom:5px;}
+  .field input, .field select, .field textarea{width:100%; background:var(--bg-card); border:1px solid var(--line); color:var(--text);
+    padding:10px 10px; border-radius:5px; font-size:14px; font-family:var(--font-body);}
+  .field input:focus, .field select:focus, .field textarea:focus{outline:none; border-color:var(--cyan); box-shadow:0 0 0 2px rgba(0,240,255,0.15);}
+  .field textarea{resize:vertical; min-height:56px;}
+  .row2{display:flex; gap:10px;}
+  .row2 .field{flex:1;}
+  .photo-pick{display:flex; align-items:center; gap:10px; border:1px dashed var(--line); border-radius:6px; padding:10px; cursor:pointer; color:var(--dim); font-size:12.5px;}
+  .photo-pick.has img{width:50px; height:50px; object-fit:cover; border-radius:4px;}
+  .photo-pick .cam{font-size:20px;}
+  .btnrow{display:flex; gap:10px; margin-top:6px;}
+  .btn{flex:1; padding:12px; border-radius:6px; border:none; font-family:'Orbitron',sans-serif; font-size:12.5px; cursor:pointer; letter-spacing:.4px;}
+  .btn.primary{background:linear-gradient(135deg, var(--cyan), var(--magenta)); color:#05060a; font-weight:700;}
+  .btn.ghost{background:none; border:1px solid var(--line); color:var(--dim);}
+  .type-pick{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:2px;}
+  .chip{padding:7px 11px; border:1px solid var(--line); border-radius:20px; font-size:12px; color:var(--dim); cursor:pointer; background:var(--bg-card);}
+  .chip.sel{border-color:var(--cyan); color:var(--cyan); box-shadow:0 0 8px rgba(0,240,255,0.25);}
+  .toast{position:fixed; top:12px; left:50%; transform:translateX(-50%); z-index:200; background:var(--bg-panel); border:1px solid var(--lime);
+    color:var(--lime); padding:9px 18px; border-radius:20px; font-size:12.5px; box-shadow:0 0 14px rgba(186,255,41,0.3); opacity:0; transition:.25s; pointer-events:none;}
+  .toast.show{opacity:1; top:18px;}
+  .lightbox{position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:300; display:none; align-items:center; justify-content:center; padding:20px;}
+  .lightbox.show{display:flex;}
+  .lightbox img{max-width:100%; max-height:100%; border-radius:6px;}
+  ::selection{background:rgba(0,240,255,0.3);}
+</style>
+</head>
+<body>
+<div class="scan"></div>
+
+<header class="top">
+  <div class="brand">
+    <div>
+      <h1 id="tAppTitle">PHOENIX RIDER</h1>
+      <div class="sub" id="tAppSub">نظام تتبع صيانة المركبات // v1.1</div>
+    </div>
+    <div class="headright">
+      <button class="printbtn" id="printBtn"></button>
+      <div class="langtoggle" id="langToggle"><span id="langAr">AR</span><span id="langEn">EN</span></div>
+      <div class="clock mono" id="clock">--:--:--</div>
+    </div>
+  </div>
+</header>
+
+<div class="vtabs" id="vtabs"></div>
+<main id="main"></main>
+<button class="fab" id="fabAdd"></button>
+
+<div class="sheet-bg" id="sheetBg"><div class="sheet" id="sheet"></div></div>
+<div class="lightbox" id="lightbox"><img id="lightboxImg" src=""></div>
+<div class="toast" id="toast"></div>
+<div id="printReport"></div>
+
+<script>
+/* ============ I18N ============ */
+let LANG = 'ar';
+const STR = {
+  appTitle:{ar:'PHOENIX RIDER', en:'PHOENIX RIDER'},
+  printReport:{ar:'🖨️ تقرير طباعة', en:'🖨️ Print report'},
+  defaultCar:{ar:'السيارة', en:'Car'},
+  reportTitle:{ar:'تقرير صيانة المركبات — PHOENIX RIDER', en:'Vehicle Maintenance Report — PHOENIX RIDER'},
+  reportGenerated:{ar:'تاريخ إصدار التقرير', en:'Report generated on'},
+  reportCurrentOdo:{ar:'العداد الحالي', en:'Current odometer'},
+  reportNoRecords:{ar:'لا توجد سجلات صيانة لهذه المركبة', en:'No maintenance records for this vehicle'},
+  reportColDate:{ar:'التاريخ', en:'Date'},
+  reportColKm:{ar:'الكيلومتراج', en:'Odometer'},
+  reportColType:{ar:'نوع الصيانة', en:'Maintenance type'},
+  reportColNotes:{ar:'ملاحظات', en:'Notes'},
+  reportColCost:{ar:'التكلفة', en:'Cost'},
+  reportTotal:{ar:'إجمالي التكاليف المسجّلة', en:'Total recorded cost'},
+  appSub:{ar:'نظام تتبع صيانة المركبات // v1.1', en:'VEHICLE MAINTENANCE TRACKER // v1.1'},
+  addVehicleTab:{ar:'+ مركبة جديدة', en:'+ New vehicle'},
+  kmUnit:{ar:'كم', en:'km'},
+  odoLabel:{ar:'العداد الحالي', en:'Current odometer'},
+  editKm:{ar:'تعديل ✎', en:'Edit ✎'},
+  editVehicle:{ar:'تعديل المركبة ✎', en:'Edit vehicle ✎'},
+  editVehicleTitle:{ar:'تعديل بيانات المركبة', en:'Edit vehicle details'},
+  saveVehicleChanges:{ar:'حفظ التعديلات', en:'Save changes'},
+  changePhoto:{ar:'اضغط لتغيير الصورة', en:'Tap to change photo'},
+  addPhoto:{ar:'اضغط لإضافة صورة (من الاستوديو أو الكاميرا)', en:'Tap to add a photo (from gallery or camera)'},
+  checklistTab:{ar:'قائمة الفحص', en:'Checklist'},
+  logTab:{ar:'سجل الصيانة', en:'Maintenance log'},
+  addMaintenance:{ar:'+ تسجيل صيانة', en:'+ Log maintenance'},
+  noRecordAtAll:{ar:'ما في تسجيلات بعد — اضغط "تسجيل صيانة" لتبدأ 🔧', en:'No records yet — tap "Log maintenance" to start 🔧'},
+  lastTime:{ar:'آخر مرة', en:'Last done'},
+  interval:{ar:'الفاصل', en:'Interval'},
+  every:{ar:'كل', en:'every'},
+  months:{ar:'شهر', en:'months'},
+  noFixedInterval:{ar:'بدون فاصل ثابت — منسجّلها وقت ما تصير', en:'No fixed interval — logged whenever it happens'},
+  usualInterval:{ar:'الفاصل المعتاد', en:'Usual interval'},
+  dueNow:{ar:'مستحق الآن ⚠', en:'Due now ⚠'},
+  remainingKm:{ar:'باقي', en:'remaining'},
+  remainingMonths:{ar:'باقي', en:'remaining'},
+  loggedOnly:{ar:'مسجّل', en:'Logged'},
+  noRecordYet:{ar:'لا يوجد سجل', en:'No record'},
+  deleteRecord:{ar:'حذف ✕', en:'Delete ✕'},
+  editRecord:{ar:'تعديل ✎', en:'Edit ✎'},
+  confirmDelete:{ar:'حذف هذا السجل نهائياً؟', en:'Delete this record permanently?'},
+  deletedToast:{ar:'تم الحذف 🗑', en:'Deleted 🗑'},
+  savedRecordToast:{ar:'تم حفظ السجل ✔', en:'Record saved ✔'},
+  updatedRecordToast:{ar:'تم تحديث السجل ✔', en:'Record updated ✔'},
+  savedVehicleToast:{ar:'تمت الإضافة ✔', en:'Vehicle added ✔'},
+  savedPhotoToast:{ar:'تم حفظ الصورة ✔', en:'Photo saved ✔'},
+  updatedOdoToast:{ar:'تم تحديث العداد ✔', en:'Odometer updated ✔'},
+  addVehicleTitle:{ar:'+ إضافة مركبة جديدة', en:'+ Add new vehicle'},
+  vehicleType:{ar:'النوع', en:'Type'},
+  motorcycle:{ar:'دراجة نارية', en:'Motorcycle'},
+  car:{ar:'سيارة', en:'Car'},
+  vehicleName:{ar:'اسم المركبة', en:'Vehicle name'},
+  vehicleNamePh:{ar:'مثال: كيا سيراتو', en:'e.g. Kia Cerato'},
+  plateOptional:{ar:'رقم اللوحة (اختياري)', en:'Plate number (optional)'},
+  currentKmField:{ar:'قراءة العداد الحالية', en:'Current odometer'},
+  cancel:{ar:'إلغاء', en:'Cancel'},
+  addBtn:{ar:'إضافة', en:'Add'},
+  writeVehicleName:{ar:'اكتب اسم المركبة', en:'Enter a vehicle name'},
+  addVehicleFirst:{ar:'أضف مركبة أولاً', en:'Add a vehicle first'},
+  maintenanceType:{ar:'نوع الصيانة', en:'Maintenance type'},
+  chooseTypePh:{ar:'اكتب النوع...', en:'Type the maintenance name...'},
+  specifyType:{ar:'حدد نوع الصيانة', en:'Specify maintenance type'},
+  writeMaintenanceType:{ar:'اكتب نوع الصيانة', en:'Enter the maintenance type'},
+  date:{ar:'التاريخ', en:'Date'},
+  odometerReading:{ar:'قراءة العداد (كم)', en:'Odometer (km)'},
+  notes:{ar:'ملاحظات', en:'Notes'},
+  notesPh:{ar:'القطعة، المكان، أي تفاصيل...', en:'Part, location, any details...'},
+  cost:{ar:'التكلفة (د.أ)', en:'Cost (JOD)'},
+  photoLabel:{ar:'صورة (القطعة المشتراة أو المستبدلة)', en:'Photo (part purchased or replaced)'},
+  photoPickPh:{ar:'اضغط لاختيار صورة من الاستوديو أو التقاطها', en:'Tap to choose a photo from gallery or take one'},
+  photoChosen:{ar:'تم اختيار الصورة ✔ (اضغط للتغيير)', en:'Photo selected ✔ (tap to change)'},
+  photoError:{ar:'تعذر معالجة الصورة', en:'Could not process the photo'},
+  saveRecordBtn:{ar:'حفظ السجل', en:'Save record'},
+  saveEditBtn:{ar:'حفظ التعديل', en:'Save changes'},
+  recordTitleNew:{ar:'تسجيل صيانة —', en:'Log maintenance —'},
+  recordTitleEdit:{ar:'تعديل سجل —', en:'Edit record —'},
+  invalidNumber:{ar:'رقم غير صالح', en:'Invalid number'},
+  infoTitle:{ar:'كيف بنعرف إنو الصيانة مستحقة؟', en:'How is "due" calculated?'},
+  infoBody1:{ar:'كل نوع صيانة إله فاصل معتاد (مسافة بالكيلومترات أو مدة بالأشهر) بناءً على توصيات مصنّعة عامة. مثلاً تبديل الزيت كل 5000 كم، سائل الفرامل كل 24 شهر.', en:'Each maintenance type has a typical interval (a distance in km or a duration in months) based on general manufacturer guidance. For example, oil change every 5,000 km, brake fluid every 24 months.'},
+  infoBody2:{ar:'منجيب آخر مرة سجّلت فيها هاي الصيانة لهاي المركبة (تاريخها وكيلومتراجها)، ومنضيف عليها الفاصل، ومنقارن الناتج مع عداد المركبة الحالي أو تاريخ اليوم:', en:'We take the last time this maintenance was logged for this vehicle (its date and km), add the interval, and compare the result to the current odometer or to today\'s date:'},
+  infoLi1:{ar:'إذا الناتج وصل أو تجاوزه العداد/التاريخ → "مستحق الآن ⚠"', en:'If the odometer/date has reached or passed it → "Due now ⚠"'},
+  infoLi2:{ar:'إذا قرب (أقل من 15% من الفاصل بالكيلومترات، أو أقل من 3 شهور بالفواصل الزمنية) → بيظهر بالأصفر مع الكمية المتبقية', en:'If it is close (less than 15% of the km interval, or under 3 months for time-based ones) → shown in amber with the remaining amount'},
+  infoLi3:{ar:'إذا لسا بعيد → بيظهر بالأخضر مع الكمية المتبقية', en:'If there is still plenty left → shown in green with the remaining amount'},
+  infoBody3:{ar:'صيانات معينة (متل تبديل الكاوتش أو البطارية) ما إلها فاصل ثابت لأنها بتعتمد على التآكل — هاي بتظهر "مسجّل" بس من دون حساب استحقاق، وبتضل قائمة لتوثيق آخر مرة صارت فيها.', en:'Some items (like tires or the battery) have no fixed interval since they depend on wear — these just show "Logged" without a due calculation, kept as a record of when it last happened.'},
+  infoClose:{ar:'فهمت 👍', en:'Got it 👍'},
+};
+function t(k){ return STR[k] ? STR[k][LANG] : k; }
+
+/* ============ CATALOG (Levantine dialect) ============ */
+const CATALOG = {
+  motorcycle: [
+    {k:'oil', ar:'تبديل الزيت', en:'Oil change', km:5000},
+    {k:'oil_filter', ar:'تبديل فلتر الزيت', en:'Oil filter change', km:10000},
+    {k:'air_filter', ar:'تبديل فلتر الهوا', en:'Air filter change', km:20000},
+    {k:'spark_plugs', ar:'تبديل البواجي', en:'Spark plugs', km:20000},
+    {k:'chain_clean', ar:'تنظيف وتشحيم الجنزير', en:'Chain clean & lube', km:800},
+    {k:'chain_replace', ar:'تبديل الجنزير والترس', en:'Chain & sprocket replace', km:25000},
+    {k:'front_tire', ar:'تبديل الكاوتش القدامي', en:'Front tire replace', km:null},
+    {k:'rear_tire', ar:'تبديل الكاوتش الخلفي', en:'Rear tire replace', km:null},
+    {k:'brake_fluid', ar:'تبديل زيت البريك', en:'Brake fluid change', months:24},
+    {k:'brake_pads_f', ar:'تبديل البريك القدامي', en:'Front brake replace', km:null},
+    {k:'brake_pads_r', ar:'تبديل البريك الخلفي', en:'Rear brake replace', km:null},
+    {k:'battery', ar:'فحص / تبديل البطارية', en:'Battery check / replace', km:null},
+    {k:'coolant', ar:'تبديل مي الرديتر', en:'Coolant change', months:24},
+    {k:'throttle_service', ar:'تنظيف ومعايرة الخانق', en:'Throttle body service', km:20000},
+    {k:'fork_oil', ar:'تبديل زيت الجلد القدامي', en:'Front fork oil change', km:25000},
+    {k:'valve_clearance', ar:'فحص وضبط سقلة الصمامات', en:'Valve clearance check', km:40000},
+    {k:'general_repair', ar:'صيانة / إصلاح عام', en:'General repair', km:null},
+    {k:'other', ar:'غير هيك', en:'Other', km:null},
+  ],
+  car: [
+    {k:'oil', ar:'تبديل الزيت والفلتر', en:'Oil & filter change', km:8000},
+    {k:'air_filter', ar:'تبديل فلتر الهوا', en:'Air filter change', km:15000},
+    {k:'cabin_filter', ar:'تبديل فلتر المكيف', en:'Cabin (AC) filter change', km:15000},
+    {k:'spark_plugs', ar:'تبديل البواجي', en:'Spark plugs', km:40000},
+    {k:'timing_belt', ar:'تبديل سير / سلسلة الكامة', en:'Timing belt / chain', km:100000},
+    {k:'brake_fluid', ar:'تبديل زيت البريك', en:'Brake fluid change', months:24},
+    {k:'brake_pads_f', ar:'تبديل البريك القدامي', en:'Front brake replace', km:null},
+    {k:'brake_pads_r', ar:'تبديل البريك الخلفي', en:'Rear brake replace', km:null},
+    {k:'brake_discs', ar:'فحص / تبديل الدسكات', en:'Brake discs check / replace', km:null},
+    {k:'tires', ar:'فحص / تبديل الكاوتش', en:'Tires check / replace', km:null},
+    {k:'battery', ar:'فحص / تبديل البطارية', en:'Battery check / replace', km:null},
+    {k:'coolant', ar:'تبديل مي الرديتر', en:'Coolant change', months:24},
+    {k:'trans_oil', ar:'تبديل زيت الفتيس', en:'Transmission oil change', km:60000},
+    {k:'power_steering', ar:'فحص زيت الدركسيون', en:'Power steering fluid check', km:40000},
+    {k:'belts', ar:'فحص سيور المكينة', en:'Engine belts check', km:60000},
+    {k:'ac_service', ar:'صيانة المكيف وتعبئة الفريون', en:'AC service & refrigerant refill', months:24},
+    {k:'periodic_inspection', ar:'الفحص الفني الدوري', en:'Periodic technical inspection', months:12},
+    {k:'general_repair', ar:'صيانة / إصلاح عام', en:'General repair', km:null},
+    {k:'other', ar:'غير هيك', en:'Other', km:null},
+  ]
+};
+function catLabel(c){ return c[LANG]; }
+const ICONS = {motorcycle:'🏍️', car:'🚗'};
+
+const SEED_MOTO_RECORDS = [
+["2023-06-25",10800,"oil","Motol 10/40، بدون تبديل فلتر، التغيير القادم عند 15000كم",24],
+["2023-06-25",10800,"chain_clean","",5],
+["2023-06-26",10800,"other","تعبئة سائل التبريد",0],
+["2023-11-25",14000,"front_tire","95 دينار شامل التركيب",95],
+["2023-12-14",14500,"chain_clean","مع غسيل",5],
+["2023-12-15",14500,"battery","إعادة شحن البطارية",0],
+["2024-02-22",15400,"oil","Motul 5w/40 4T 7100 - 3 لتر",27],
+["2024-02-22",15400,"oil_filter","فلتر K&N",18],
+["2024-02-22",15400,"chain_clean","مع غسيل",5],
+["2024-03-11",15400,"spark_plugs","في وكالة يماها / معتمد",42],
+["2024-03-11",15700,"air_filter","في وكالة يماها / التغيير القادم بعد 20000كم",21],
+["2024-03-11",15700,"throttle_service","تنظيف ومعايرة الخانق",20],
+["2024-03-23",16000,"brake_fluid","Ardica DOT4 / تاريخ 2022 صالح 5 سنوات / بواسطة عمار / القادم بعد سنتين",0],
+["2024-04-24",17000,"chain_clean","",0],
+["2024-06-07",18400,"chain_clean","",0],
+["2024-07-25",20000,"oil","10/40 7100 4T",25],
+["2024-08-25",20300,"rear_tire","",150],
+["2024-11-11",23000,"general_repair","إصلاح ودهان الجنطات الأمامية والخلفية من الخدوش والأضرار",257],
+["2025-01-21",25000,"chain_replace","",140],
+["2025-01-21",25000,"oil","زيت يماها + فلتر أصلي + حلقة",46],
+["2025-06-25",30200,"oil","زيت وفلتر في وكالة يماها",46],
+["2026-05-02",35500,"oil","بدون فلتر في Edge Moto / Motol 5/40",24],
+["2026-06-21",37000,"battery","FIMM AGM / من Car Star",70],
+["2026-08-22",37500,"brake_pads_r","قطعة أصلية يماها رقم 5VX2580600",44],
+];
+
+const SEED_CERATO_RECORDS = [
+["2021-11-05",120000,"tires","كاوتش خلفي - كونتيننتال نوع جديد",120],
+["2022-10-29",144444,"oil","زيت Meguin 10/40 (7$/لتر) + فلتر كوري (5$) مع غسيل مجاني. التغيير القادم عند 154444 كم",30],
+["2022-10-29",144444,"other","Bosch",6,"مساحات"],
+["2022-10-29",144444,"other","",1,"لمبة فرامل"],
+["2022-10-29",144444,"other","",0,"غسيل سيارة"],
+["2023-01-01",146787,"tires","كاوتش قدامي - كونتيننتال",120],
+["2023-01-01",146787,"brake_pads_f","",15],
+["2023-06-26",151500,"general_repair","مشكلة بدواسة الفرامل - تبديل بلي سبب تسريب كهرباء",0],
+["2023-06-26",151500,"other","مجاناً من محل دعاء كرزون",0,"لمبة فرامل × 2"],
+["2023-09-05",149000,"spark_plugs","من محل جنب كار ستارز",8],
+["2023-11-04",154912,"oil","زيت Ardica 10/40 + فلتر من الأفضل (عمار). التغيير القادم عند 164912 كم",21.5],
+["2023-11-04",154912,"other","من دوبل إم",8,"مساحات"],
+["2023-11-15",155500,"general_repair","حساس كرنك أصلي (OEM)",20],
+["2023-12-31",154912,"general_repair","تبديل شمعة خلفية يسار بسبب حادث",20],
+["2024-07-15",162500,"brake_pads_f","",25],
+["2024-07-15",162500,"brake_pads_r","قطعة أصلية OEM",35],
+["2024-07-15",162500,"general_repair","قضيبين استابلايزر أمامي",15],
+["2024-07-15",162500,"brake_discs","تنظيف بالمخرطة",10],
+["2024-07-15",162500,"general_repair","بوش مقص 2 - قطع وتركيب",20],
+["2024-07-15",162500,"general_repair","طقم صيانة الدركسيون",5],
+["2024-07-15",162500,"general_repair","ستوده وصامولة",0],
+["2024-07-15",162500,"tires","ميزان 4 إطارات",0],
+["2024-07-15",162500,"general_repair","شحم هب أمامي",0],
+["2024-07-15",162500,"general_repair","أجرة صيانة - Royal / أحمد",40],
+["2024-10-19",164647,"oil","Totachi 10/40 (3.5 لتر) + فلتر + تنظيف المكينة والهيكل. التغيير القادم عند 174647 كم",30],
+["2026-02-08",174028,"oil","Liqui Moly 10/40 (6د.أ/لتر × 4لتر) + فلتر 3د.أ + غسيل 3د.أ",30],
+];
+
+/* ============ STORAGE COMPAT SHIM ============ */
+/* Uses Claude's window.storage when available (inside an Artifact),
+   otherwise falls back to localStorage so this works standalone (e.g. on GitHub Pages). */
+const AppStorage = (window.storage && typeof window.storage.get === 'function') ? window.storage : {
+  async get(key){ const v = localStorage.getItem(key); return v===null ? null : {key, value:v}; },
+  async set(key, value){ localStorage.setItem(key, value); return {key, value}; },
+  async delete(key){ localStorage.removeItem(key); return {key, deleted:true}; },
+  async list(prefix){ const keys = Object.keys(localStorage).filter(k => !prefix || k.startsWith(prefix)); return {keys}; },
+};
+
+/* ============ STATE ============ */
+let vehicles = [];
+let records = [];
+let activeVehicleId = null;
+let activeTab = 'checklist';
+
+/* ============ STORAGE ============ */
+async function loadState(){
+  try{ const v = await AppStorage.get('vehicles-v1'); vehicles = v ? JSON.parse(v.value) : null; }catch(e){ vehicles = null; }
+  try{ const r = await AppStorage.get('maintenance-v1'); records = r ? JSON.parse(r.value) : null; }catch(e){ records = null; }
+  let settings = {};
+  try{ const s = await AppStorage.get('settings-v1'); if(s){ settings = JSON.parse(s.value); LANG = settings.lang || 'ar'; } }catch(e){}
+
+  if(!vehicles){
+    vehicles = [
+      {id:'moto1', type:'motorcycle', name:'MT-09', plate:'', km:37500, photo:null},
+      {id:'car1', type:'car', name:'', nameKey:'defaultCar', plate:'', km:0, photo:null},
+    ];
+    records = SEED_MOTO_RECORDS.map((r,i)=>({id:'seed'+i, vehicleId:'moto1', date:r[0], km:r[1], typeKey:r[2], customLabel:'', notes:r[3], cost:r[4], photo:null}));
+    await saveState();
+  }
+  if(!records) records = [];
+
+  // one-time migration: fill in the Kia Cerato profile + history, only if the car slot still looks untouched
+  if(!settings.ceratoSeeded){
+    const car = vehicles.find(v=>v.id==='car1');
+    const hasCarRecords = records.some(r=>r.vehicleId==='car1');
+    if(car && !hasCarRecords && car.km===0 && !car.name && !car.plate){
+      car.name = 'Kia Cerato';
+      delete car.nameKey;
+      car.plate = '23-12887';
+      car.km = 174028;
+      const newRecs = SEED_CERATO_RECORDS.map((r,i)=>({id:'cerato'+i, vehicleId:'car1', date:r[0], km:r[1], typeKey:r[2], customLabel: r[5]||'', notes:r[3], cost:r[4], photo:null}));
+      records = records.concat(newRecs);
+      await saveState();
+    }
+    settings.ceratoSeeded = true;
+    try{ await AppStorage.set('settings-v1', JSON.stringify(settings)); }catch(e){}
+  }
+
+  activeVehicleId = vehicles[0].id;
+}
+async function saveState(){
+  try{ await AppStorage.set('vehicles-v1', JSON.stringify(vehicles)); }catch(e){ showToast('⚠️'); }
+  try{ await AppStorage.set('maintenance-v1', JSON.stringify(records)); }catch(e){ showToast('⚠️'); }
+}
+async function saveSettings(){
+  try{ await AppStorage.set('settings-v1', JSON.stringify({lang:LANG})); }catch(e){}
+}
+
+/* ============ HELPERS ============ */
+function fmt(n){ return Number(n).toLocaleString('en-US'); }
+function vName(v){ return (v.nameKey && !v.name) ? t(v.nameKey) : v.name; }
+function typeLabel(v,rec){
+  if(rec.typeKey==='other' && rec.customLabel) return rec.customLabel;
+  const c = CATALOG[v.type].find(x=>x.k===rec.typeKey);
+  return c ? catLabel(c) : rec.typeKey;
+}
+function monthsBetween(d1,d2){ return (d2.getFullYear()-d1.getFullYear())*12 + (d2.getMonth()-d1.getMonth()); }
+function showToast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),1800); }
+function resizeImage(file, maxW=900){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onload = e=>{
+      const img = new Image();
+      img.onload = ()=>{
+        let w=img.width,h=img.height;
+        if(w>maxW){ h=h*(maxW/w); w=maxW; }
+        const c=document.createElement('canvas'); c.width=w; c.height=h;
+        c.getContext('2d').drawImage(img,0,0,w,h);
+        resolve(c.toDataURL('image/jpeg',0.75));
+      };
+      img.onerror=reject; img.src=e.target.result;
+    };
+    reader.onerror=reject; reader.readAsDataURL(file);
+  });
+}
+
+/* ============ LANGUAGE ============ */
+function applyLangChrome(){
+  const html = document.getElementById('htmlRoot');
+  html.lang = LANG;
+  html.dir = LANG==='ar' ? 'rtl' : 'ltr';
+  html.classList.toggle('lang-en', LANG==='en');
+  document.getElementById('langAr').classList.toggle('on', LANG==='ar');
+  document.getElementById('langEn').classList.toggle('on', LANG==='en');
+  document.getElementById('tAppSub').textContent = t('appSub');
+  document.getElementById('fabAdd').textContent = t('addMaintenance');
+  document.getElementById('printBtn').textContent = t('printReport');
+}
+document.getElementById('langToggle').onclick = ()=>{
+  LANG = LANG==='ar' ? 'en' : 'ar';
+  applyLangChrome(); saveSettings(); render();
+};
+
+/* ============ RENDER: TABS ============ */
+function renderVTabs(){
+  const el = document.getElementById('vtabs'); el.innerHTML='';
+  vehicles.forEach(v=>{
+    const d = document.createElement('div');
+    d.className = 'vtab' + (v.id===activeVehicleId?' active':'');
+    d.innerHTML = `<span class="ico">${ICONS[v.type]}</span><span>${vName(v)}</span><span class="km mono">${fmt(v.km)} ${t('kmUnit')}</span>`;
+    d.onclick = ()=>{ activeVehicleId=v.id; activeTab='checklist'; render(); };
+    el.appendChild(d);
+  });
+  const add = document.createElement('div');
+  add.className = 'vtab add'; add.textContent = t('addVehicleTab');
+  add.onclick = openAddVehicleSheet;
+  el.appendChild(add);
+}
+
+/* ============ RENDER: MAIN ============ */
+function render(){
+  applyLangChrome();
+  renderVTabs();
+  const v = vehicles.find(x=>x.id===activeVehicleId);
+  const main = document.getElementById('main');
+  if(!v){ main.innerHTML=''; return; }
+  const vrecs = records.filter(r=>r.vehicleId===v.id).sort((a,b)=> b.date.localeCompare(a.date) || b.km-a.km);
+
+  main.innerHTML = `
+    <div class="veh-card">
+      <div class="veh-head">
+        <div class="veh-photo" id="vehPhotoBtn" style="${v.photo?`background-image:url('${v.photo}')`:''}">${v.photo?'':ICONS[v.type]}</div>
+        <div class="veh-info">
+          <div class="name">${vName(v)}</div>
+          <div class="plate">${v.plate ? (LANG==='ar'?'لوحة: ':'Plate: ')+v.plate : t(v.type)}</div>
+        </div>
+        <button class="edit-veh" id="editVehBtn">${t('editVehicle')}</button>
+      </div>
+      <div class="odo">
+        <span class="val mono">${fmt(v.km)}</span>
+        <span class="lbl">${t('kmUnit')} // ${t('odoLabel')}</span>
+      </div>
+    </div>
+    <div class="tabbar">
+      <button class="tabbtn ${activeTab==='checklist'?'active':''}" data-tab="checklist">${t('checklistTab')}</button>
+      <button class="tabbtn ${activeTab==='log'?'active':''}" data-tab="log">${t('logTab')} (${vrecs.length})</button>
+      <button class="infobtn" id="infoBtn" title="?">?</button>
+    </div>
+    <div id="tabContent"></div>
+  `;
+  document.getElementById('vehPhotoBtn').onclick = ()=>openEditVehicleSheet(v);
+  document.getElementById('editVehBtn').onclick = ()=>openEditVehicleSheet(v);
+  document.getElementById('infoBtn').onclick = openInfoSheet;
+  main.querySelectorAll('.tabbtn').forEach(b=> b.onclick = ()=>{ activeTab=b.dataset.tab; render(); });
+
+  const content = document.getElementById('tabContent');
+  if(activeTab==='checklist') content.innerHTML = renderChecklist(v, vrecs);
+  else content.innerHTML = renderLog(v, vrecs);
+
+  if(activeTab==='log'){
+    content.querySelectorAll('.rec-actions .del').forEach(b=> b.onclick = ()=>deleteRecord(b.dataset.id));
+    content.querySelectorAll('.rec-actions .edit').forEach(b=> b.onclick = ()=>openAddRecordSheet(records.find(r=>r.id===b.dataset.id)));
+    content.querySelectorAll('.rec .thumb[data-full]').forEach(img=> img.onclick = ()=>openLightbox(img.dataset.full));
+  }
+}
+
+function renderChecklist(v, vrecs){
+  const items = CATALOG[v.type];
+  let html = '';
+  items.forEach(it=>{
+    const matches = vrecs.filter(r=>r.typeKey===it.k);
+    let statusClass='none', statusText=t('noRecordYet'), detail='';
+    const intervalTxt = it.km ? `${t('every')} ${fmt(it.km)} ${t('kmUnit')}` : (it.months ? `${t('every')} ${it.months} ${t('months')}` : '');
+    if(matches.length){
+      const last = matches[0];
+      if(it.km){
+        const remain = (last.km + it.km) - v.km;
+        detail = `${t('lastTime')}: ${fmt(last.km)} ${t('kmUnit')} — ${last.date} · ${t('interval')}: ${intervalTxt}`;
+        if(remain<=0){ statusClass='overdue'; statusText=t('dueNow'); }
+        else if(remain<=it.km*0.15){ statusClass='soon'; statusText=`${t('remainingKm')} ${fmt(Math.round(remain))} ${t('kmUnit')}`; }
+        else { statusClass='ok'; statusText=`${t('remainingKm')} ${fmt(Math.round(remain))} ${t('kmUnit')}`; }
+      } else if(it.months){
+        const remainM = it.months - monthsBetween(new Date(last.date), new Date());
+        detail = `${t('lastTime')}: ${last.date} · ${t('interval')}: ${intervalTxt}`;
+        if(remainM<=0){ statusClass='overdue'; statusText=t('dueNow'); }
+        else if(remainM<=3){ statusClass='soon'; statusText=`${t('remainingMonths')} ${remainM} ${t('months')}`; }
+        else { statusClass='ok'; statusText=`${t('remainingMonths')} ${remainM} ${t('months')}`; }
+      } else {
+        detail = `${t('lastTime')}: ${fmt(last.km)} ${t('kmUnit')} — ${last.date} · ${t('noFixedInterval')}`;
+        statusClass='ok'; statusText=t('loggedOnly');
+      }
+    } else if(intervalTxt){
+      detail = `${t('usualInterval')}: ${intervalTxt}`;
+    } else {
+      detail = t('noFixedInterval');
+    }
+    html += `<div class="chk-item ${statusClass}">
+      <div class="chk-left"><div class="t">${catLabel(it)}</div>${detail?`<span class="d">${detail}</span>`:''}</div>
+      <div class="chk-status ${statusClass}">${statusText}</div>
+    </div>`;
+  });
+  return html;
+}
+
+function renderLog(v, vrecs){
+  if(!vrecs.length) return `<div class="empty-state">${t('noRecordAtAll')}</div>`;
+  return vrecs.map(r=>`
+    <div class="rec">
+      ${r.photo ? `<img class="thumb" data-full="${r.photo}" src="${r.photo}">` : `<div class="thumb empty">🛠️</div>`}
+      <div class="rec-body">
+        <div class="rec-top">
+          <div class="rec-type">${typeLabel(v,r)}</div>
+          <div class="rec-cost">${r.cost>0?fmt(r.cost)+(LANG==='ar'?' د.أ':' JOD'):''}</div>
+        </div>
+        <div class="rec-meta">${r.date} · ${fmt(r.km)} ${t('kmUnit')}</div>
+        ${r.notes?`<div class="rec-notes">${r.notes}</div>`:''}
+        <div class="rec-actions">
+          <button class="edit" data-id="${r.id}">${t('editRecord')}</button>
+          <button class="del" data-id="${r.id}">${t('deleteRecord')}</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ============ ACTIONS ============ */
+let pendingVehPhoto = null;
+function openEditVehicleSheet(v){
+  pendingVehPhoto = v.photo || null;
+  const sheet = document.getElementById('sheet');
+  sheet.innerHTML = `
+    <h2>${t('editVehicleTitle')}</h2>
+    <div class="field">
+      <label>${t('photoLabel')}</label>
+      <div class="photo-pick ${v.photo?'has':''}" id="vehPhotoPick">
+        ${v.photo? `<img src="${v.photo}"><span>${t('changePhoto')}</span>` : `<span class="cam">📷</span><span>${t('addPhoto')}</span>`}
+      </div>
+      <input type="file" id="vehPhotoInput" accept="image/*" style="display:none;">
+    </div>
+    <div class="field"><label>${t('vehicleName')}</label><input id="editVehName" value="${vName(v).replace(/"/g,'&quot;')}"></div>
+    <div class="row2">
+      <div class="field"><label>${t('plateOptional')}</label><input id="editVehPlate" value="${(v.plate||'').replace(/"/g,'&quot;')}"></div>
+      <div class="field"><label>${t('currentKmField')}</label><input id="editVehKm" type="number" value="${v.km}"></div>
+    </div>
+    <div class="btnrow">
+      <button class="btn ghost" id="cancelEditVeh">${t('cancel')}</button>
+      <button class="btn primary" id="saveEditVeh">${t('saveVehicleChanges')}</button>
+    </div>
+  `;
+  const photoPick = document.getElementById('vehPhotoPick');
+  const photoInput = document.getElementById('vehPhotoInput');
+  photoPick.onclick = ()=> photoInput.click();
+  photoInput.onchange = async ()=>{
+    if(!photoInput.files[0]) return;
+    try{
+      pendingVehPhoto = await resizeImage(photoInput.files[0]);
+      photoPick.classList.add('has');
+      photoPick.innerHTML = `<img src="${pendingVehPhoto}"><span>${t('changePhoto')}</span>`;
+    }catch(e){ showToast(t('photoError')); }
+  };
+  document.getElementById('cancelEditVeh').onclick = closeSheet;
+  document.getElementById('saveEditVeh').onclick = ()=>{
+    const name = document.getElementById('editVehName').value.trim();
+    if(!name){ showToast(t('writeVehicleName')); return; }
+    const kmVal = parseFloat(document.getElementById('editVehKm').value);
+    if(isNaN(kmVal) || kmVal<0){ showToast(t('invalidNumber')); return; }
+    v.name = name; delete v.nameKey;
+    v.plate = document.getElementById('editVehPlate').value.trim();
+    v.km = kmVal;
+    v.photo = pendingVehPhoto;
+    saveState(); closeSheet(); render(); showToast(t('updatedOdoToast'));
+  };
+  showSheet();
+}
+function deleteRecord(id){
+  if(!confirm(t('confirmDelete'))) return;
+  records = records.filter(r=>r.id!==id);
+  saveState(); render(); showToast(t('deletedToast'));
+}
+function openLightbox(src){ document.getElementById('lightboxImg').src=src; document.getElementById('lightbox').classList.add('show'); }
+document.getElementById('lightbox').onclick = ()=> document.getElementById('lightbox').classList.remove('show');
+
+/* ============ INFO SHEET ============ */
+function openInfoSheet(){
+  const sheet = document.getElementById('sheet');
+  sheet.innerHTML = `
+    <h2>${t('infoTitle')}</h2>
+    <p>${t('infoBody1')}</p>
+    <p>${t('infoBody2')}</p>
+    <ul>
+      <li>${t('infoLi1')}</li>
+      <li>${t('infoLi2')}</li>
+      <li>${t('infoLi3')}</li>
+    </ul>
+    <p>${t('infoBody3')}</p>
+    <div class="btnrow"><button class="btn primary" id="infoCloseBtn">${t('infoClose')}</button></div>
+  `;
+  document.getElementById('infoCloseBtn').onclick = closeSheet;
+  showSheet();
+}
+
+/* ============ ADD VEHICLE SHEET ============ */
+function openAddVehicleSheet(){
+  const sheet = document.getElementById('sheet');
+  sheet.innerHTML = `
+    <h2>${t('addVehicleTitle')}</h2>
+    <div class="field"><label>${t('vehicleType')}</label>
+      <div class="type-pick" id="newVehType">
+        <div class="chip sel" data-t="motorcycle">🏍️ ${t('motorcycle')}</div>
+        <div class="chip" data-t="car">🚗 ${t('car')}</div>
+      </div>
+    </div>
+    <div class="field"><label>${t('vehicleName')}</label><input id="newVehName" placeholder="${t('vehicleNamePh')}"></div>
+    <div class="row2">
+      <div class="field"><label>${t('plateOptional')}</label><input id="newVehPlate" placeholder=""></div>
+      <div class="field"><label>${t('currentKmField')}</label><input id="newVehKm" type="number" placeholder="0"></div>
+    </div>
+    <div class="btnrow">
+      <button class="btn ghost" id="cancelVeh">${t('cancel')}</button>
+      <button class="btn primary" id="saveVeh">${t('addBtn')}</button>
+    </div>
+  `;
+  let chosenType='motorcycle';
+  sheet.querySelectorAll('#newVehType .chip').forEach(c=>{
+    c.onclick=()=>{ sheet.querySelectorAll('#newVehType .chip').forEach(x=>x.classList.remove('sel')); c.classList.add('sel'); chosenType=c.dataset.t; };
+  });
+  document.getElementById('cancelVeh').onclick = closeSheet;
+  document.getElementById('saveVeh').onclick = ()=>{
+    const name = document.getElementById('newVehName').value.trim();
+    if(!name){ showToast(t('writeVehicleName')); return; }
+    const km = parseFloat(document.getElementById('newVehKm').value) || 0;
+    const plate = document.getElementById('newVehPlate').value.trim();
+    const id = 'v'+Date.now();
+    vehicles.push({id, type:chosenType, name, plate, km, photo:null});
+    activeVehicleId = id; activeTab='checklist';
+    saveState(); closeSheet(); render(); showToast(t('savedVehicleToast'));
+  };
+  showSheet();
+}
+
+/* ============ ADD / EDIT RECORD SHEET ============ */
+let pendingPhoto = null;
+function openAddRecordSheet(editingRecord){
+  const v = vehicles.find(x=>x.id===activeVehicleId);
+  if(!v){ showToast(t('addVehicleFirst')); return; }
+  const isEdit = !!editingRecord;
+  pendingPhoto = isEdit ? editingRecord.photo : null;
+  const cats = CATALOG[v.type];
+  const today = new Date().toISOString().slice(0,10);
+  const sheet = document.getElementById('sheet');
+  const initialKey = isEdit ? editingRecord.typeKey : cats[0].k;
+  sheet.innerHTML = `
+    <h2>${isEdit ? t('recordTitleEdit') : t('recordTitleNew')} ${vName(v)}</h2>
+    <div class="field"><label>${t('maintenanceType')}</label>
+      <div class="type-pick" id="typePick">
+        ${cats.map(c=>`<div class="chip ${c.k===initialKey?'sel':''}" data-k="${c.k}">${catLabel(c)}</div>`).join('')}
+      </div>
+    </div>
+    <div class="field" id="customLabelField" style="display:${initialKey==='other'?'block':'none'};">
+      <label>${t('specifyType')}</label><input id="customLabel" placeholder="${t('chooseTypePh')}" value="${isEdit?(editingRecord.customLabel||''):''}">
+    </div>
+    <div class="row2">
+      <div class="field"><label>${t('date')}</label><input id="recDate" type="date" value="${isEdit?editingRecord.date:today}"></div>
+      <div class="field"><label>${t('odometerReading')}</label><input id="recKm" type="number" value="${isEdit?editingRecord.km:v.km}"></div>
+    </div>
+    <div class="field"><label>${t('notes')}</label><textarea id="recNotes" placeholder="${t('notesPh')}">${isEdit?(editingRecord.notes||''):''}</textarea></div>
+    <div class="field"><label>${t('cost')}</label><input id="recCost" type="number" placeholder="0" value="${isEdit&&editingRecord.cost?editingRecord.cost:''}"></div>
+    <div class="field">
+      <label>${t('photoLabel')}</label>
+      <div class="photo-pick ${isEdit&&editingRecord.photo?'has':''}" id="photoPick">
+        ${isEdit&&editingRecord.photo? `<img src="${editingRecord.photo}"><span>${t('photoChosen')}</span>` : `<span class="cam">📷</span><span>${t('photoPickPh')}</span>`}
+      </div>
+      <input type="file" id="photoInput" accept="image/*" style="display:none;">
+    </div>
+    <div class="btnrow">
+      <button class="btn ghost" id="cancelRec">${t('cancel')}</button>
+      <button class="btn primary" id="saveRec">${isEdit ? t('saveEditBtn') : t('saveRecordBtn')}</button>
+    </div>
+  `;
+  let chosenKey = initialKey;
+  sheet.querySelectorAll('#typePick .chip').forEach(c=>{
+    c.onclick=()=>{
+      sheet.querySelectorAll('#typePick .chip').forEach(x=>x.classList.remove('sel'));
+      c.classList.add('sel'); chosenKey = c.dataset.k;
+      document.getElementById('customLabelField').style.display = chosenKey==='other' ? 'block' : 'none';
+    };
+  });
+  const photoPick = document.getElementById('photoPick');
+  const photoInput = document.getElementById('photoInput');
+  photoPick.onclick = ()=> photoInput.click();
+  photoInput.onchange = async ()=>{
+    if(!photoInput.files[0]) return;
+    try{
+      pendingPhoto = await resizeImage(photoInput.files[0]);
+      photoPick.classList.add('has');
+      photoPick.innerHTML = `<img src="${pendingPhoto}"><span>${t('photoChosen')}</span>`;
+    }catch(e){ showToast(t('photoError')); }
+  };
+
+  document.getElementById('cancelRec').onclick = closeSheet;
+  document.getElementById('saveRec').onclick = ()=>{
+    const date = document.getElementById('recDate').value || today;
+    const km = parseFloat(document.getElementById('recKm').value) || v.km;
+    const notes = document.getElementById('recNotes').value.trim();
+    const cost = parseFloat(document.getElementById('recCost').value) || 0;
+    const customLabel = chosenKey==='other' ? document.getElementById('customLabel').value.trim() : '';
+    if(chosenKey==='other' && !customLabel){ showToast(t('writeMaintenanceType')); return; }
+    if(isEdit){
+      Object.assign(editingRecord, {date, km, typeKey:chosenKey, customLabel, notes, cost, photo:pendingPhoto});
+      if(km > v.km) v.km = km;
+      saveState(); closeSheet(); activeTab='log'; render(); showToast(t('updatedRecordToast'));
+    } else {
+      const rec = {id:'r'+Date.now(), vehicleId:v.id, date, km, typeKey:chosenKey, customLabel, notes, cost, photo:pendingPhoto};
+      records.push(rec);
+      if(km > v.km) v.km = km;
+      saveState(); closeSheet(); activeTab='log'; render(); showToast(t('savedRecordToast'));
+    }
+  };
+  showSheet();
+}
+
+/* ============ SHEET UTIL ============ */
+function showSheet(){ document.getElementById('sheetBg').classList.add('show'); }
+function closeSheet(){ document.getElementById('sheetBg').classList.remove('show'); }
+document.getElementById('sheetBg').addEventListener('click', e=>{ if(e.target.id==='sheetBg') closeSheet(); });
+document.getElementById('fabAdd').onclick = ()=>openAddRecordSheet(null);
+
+/* ============ PRINT / PDF REPORT ============ */
+function reportBodyHTML(){
+  const now = new Date();
+  const genDate = now.toLocaleDateString(LANG==='ar'?'ar-JO':'en-GB') + ' ' + now.toLocaleTimeString(LANG==='ar'?'ar-JO':'en-GB',{hour12:false});
+  let html = `<div class="pr-h1">${t('reportTitle')}</div><div class="pr-sub">${t('reportGenerated')}: ${genDate}</div>`;
+
+  vehicles.forEach(v=>{
+    const vrecs = records.filter(r=>r.vehicleId===v.id).sort((a,b)=> a.date.localeCompare(b.date) || a.km-b.km);
+    const totalCost = vrecs.reduce((s,r)=>s+(r.cost||0),0);
+    html += `<div class="pr-veh">
+      <h2>${ICONS[v.type]} ${vName(v)}${v.plate?' — '+v.plate:''}</h2>
+      <div class="pr-meta">${t('reportCurrentOdo')}: <strong>${fmt(v.km)} ${t('kmUnit')}</strong> &nbsp;·&nbsp; ${t(v.type)}</div>`;
+    if(!vrecs.length){
+      html += `<div class="pr-empty">${t('reportNoRecords')}</div>`;
+    } else {
+      html += `<table class="pr-table"><thead><tr>
+        <th>${t('reportColDate')}</th><th>${t('reportColKm')}</th><th>${t('reportColType')}</th><th>${t('reportColNotes')}</th><th>${t('reportColCost')}</th>
+      </tr></thead><tbody>`;
+      vrecs.forEach(r=>{
+        html += `<tr>
+          <td>${r.date}</td>
+          <td>${fmt(r.km)}</td>
+          <td>${typeLabel(v,r)}</td>
+          <td>${r.notes||''}</td>
+          <td>${r.cost>0?fmt(r.cost)+(LANG==='ar'?' د.أ':' JOD'):''}</td>
+        </tr>`;
+      });
+      html += `</tbody></table><div class="pr-total">${t('reportTotal')}: ${fmt(totalCost)}${LANG==='ar'?' د.أ':' JOD'}</div>`;
+    }
+    html += `</div>`;
+  });
+  return html;
+}
+
+function standaloneReportDoc(){
+  const dir = LANG==='ar' ? 'rtl' : 'ltr';
+  const align = LANG==='ar' ? 'right' : 'left';
+  return `<!DOCTYPE html><html lang="${LANG}" dir="${dir}"><head><meta charset="UTF-8">
+  <title>${t('reportTitle')}</title>
+  <style>
+    body{font-family:Arial,'Tajawal',sans-serif; background:#fff; color:#000; padding:24px; direction:${dir};}
+    .pr-h1{font-size:22px; margin:0 0 4px;}
+    .pr-sub{font-size:12px; color:#444; margin-bottom:22px;}
+    .pr-veh{margin-bottom:26px; page-break-inside:avoid;}
+    .pr-veh h2{font-size:16px; border-bottom:2px solid #000; padding-bottom:5px; margin-bottom:8px;}
+    .pr-meta{font-size:13px; color:#333; margin-bottom:10px;}
+    table{width:100%; border-collapse:collapse; font-size:12.5px;}
+    th, td{border:1px solid #999; padding:6px 7px; text-align:${align};}
+    th{background:#eee;}
+    .pr-total{text-align:${LANG==='ar'?'left':'right'}; font-size:13px; margin-top:8px; font-weight:bold;}
+    .pr-empty{font-size:12.5px; color:#555; font-style:italic;}
+    @media print{ body{padding:0;} }
+  </style></head>
+  <body>${reportBodyHTML()}
+  <script>window.onload = function(){ try{ window.print(); }catch(e){} };<\/script>
+  </body></html>`;
+}
+
+document.getElementById('printBtn').onclick = ()=>{
+  const doc = standaloneReportDoc();
+  const blob = new Blob([doc], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  let opened = null;
+  try{ opened = window.open(url, '_blank'); }catch(e){ opened = null; }
+  if(!opened){
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'phoenix-rider-report-' + new Date().toISOString().slice(0,10) + '.html';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    showToast(LANG==='ar' ? 'تم تنزيل التقرير — افتحه من المتصفح واطبعه 📄' : 'Report downloaded — open it in your browser and print 📄');
+  }
+  setTimeout(()=>URL.revokeObjectURL(url), 20000);
+};
+
+/* ============ CLOCK ============ */
+function tickClock(){ document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-GB', {hour12:false}); }
+setInterval(tickClock, 1000);
+
+/* ============ INIT ============ */
+(async function init(){
+  document.getElementById('main').innerHTML = `<div class="empty-state">⏳</div>`;
+  await loadState();
+  applyLangChrome();
+  tickClock();
+  render();
+})();
+
+/* ============ PWA: SERVICE WORKER REGISTRATION ============ */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{ /* offline install not available, app still works online */ });
+  });
+}
+</script>
+</body>
+</html>
