@@ -1,11 +1,11 @@
-const CACHE_NAME = 'phoenix-rider-v1';
+const CACHE_NAME = 'phoenix-riders-v1';
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
-  './icon-512-maskable.png',
+  './icon-maskable-512.png',
 ];
 
 self.addEventListener('install', (event) => {
@@ -18,35 +18,31 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(
-        keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))
-      )
+      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
     )
   );
   self.clients.claim();
 });
 
+// Network-first for navigation/HTML so updates show up quickly,
+// cache-first for everything else (icons, manifest) so the shell works offline.
 self.addEventListener('fetch', (event) => {
   const req = event.request;
-
-  // Only handle GET requests
-  if (req.method !== 'GET') return;
-
+  if (req.mode === 'navigate') {
+    event.respondWith(
+      fetch(req).then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+        return res;
+      }).catch(() => caches.match('./index.html'))
+    );
+    return;
+  }
   event.respondWith(
-    caches.match(req).then((cached) => {
-      const fetchPromise = fetch(req)
-        .then((networkRes) => {
-          // Update cache with fresh copy for same-origin app-shell files
-          if (req.url.startsWith(self.location.origin)) {
-            const resClone = networkRes.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(req, resClone));
-          }
-          return networkRes;
-        })
-        .catch(() => cached); // offline fallback to cache
-
-      // Cache-first for instant load, but refresh in background
-      return cached || fetchPromise;
-    })
+    caches.match(req).then((cached) => cached || fetch(req).then((res) => {
+      const copy = res.clone();
+      caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+      return res;
+    }).catch(() => cached))
   );
 });
