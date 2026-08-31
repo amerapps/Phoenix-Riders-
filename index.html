@@ -70,7 +70,7 @@ button{font-family:inherit;}
 
 /* ---------- top header (iOS large-title nav bar) ---------- */
 .topbar{position:sticky; top:0; z-index:40; display:flex; align-items:center; justify-content:space-between;
-  padding:14px 16px 10px; background:rgba(0,0,0,0.78);
+  padding:calc(14px + env(safe-area-inset-top)) 16px 10px; background:rgba(0,0,0,0.78);
   backdrop-filter:blur(20px) saturate(180%); -webkit-backdrop-filter:blur(20px) saturate(180%);
   border-bottom:0.5px solid var(--sep);}
 .brand{display:flex; align-items:center; gap:9px;}
@@ -172,7 +172,7 @@ label{font-size:12px; color:var(--muted); margin-bottom:4px; display:block;}
 .nav-item .ic{font-size:19px;}
 .nav-item.active{color:var(--flame2);}
 
-.emg-fab{position:fixed; z-index:60; inset-inline-start:16px; bottom:78px; width:54px; height:54px; border-radius:50%;
+.emg-fab{position:fixed; z-index:60; inset-inline-start:16px; bottom:calc(78px + env(safe-area-inset-bottom)); width:54px; height:54px; border-radius:50%;
   background:radial-gradient(circle at 35% 30%, #ff6961, var(--danger)); border:none; color:#fff; font-size:22px;
   box-shadow:0 0 0 0 rgba(255,69,58,0.6); animation:emgpulse 2.2s infinite; cursor:pointer;
   display:flex; align-items:center; justify-content:center;}
@@ -241,13 +241,6 @@ label{font-size:12px; color:var(--muted); margin-bottom:4px; display:block;}
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
 <script>
-/* ===== PASTE YOUR FIREBASE CONFIG HERE =====
-  // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyAI5kAdQed_XXCn9nUK_mCJBAAqyC4d3E4",
   authDomain: "phoenix-riders.firebaseapp.com",
@@ -255,10 +248,6 @@ const firebaseConfig = {
   storageBucket: "phoenix-riders.firebasestorage.app",
   messagingSenderId: "745683004477",
   appId: "1:745683004477:web:4be1c6510deb54b9864e54"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
 };
 try{
   firebase.initializeApp(firebaseConfig);
@@ -722,19 +711,19 @@ async function requestJoin(name, phone, bike){
   members.push(newMember);
   await sSet('members', members);
   S.members = members;
-  showToast(tr('joinRequestSent')+' '+newMember.pin+' '+tr('joinRequestSuffix'));
   return newMember;
 }
 
 /* ======================= RENDER ROOT ======================= */
 function render(silent){
   const app = document.getElementById('app');
+  const toastHtml = S.toast ? `<div class="toast">${S.toast}</div>` : '';
   if(!S.booted){
-    app.innerHTML = renderSplash();
+    app.innerHTML = renderSplash() + toastHtml;
     return;
   }
   if(!S.currentUserId){
-    app.innerHTML = renderLogin();
+    app.innerHTML = renderLogin() + toastHtml;
     bindLoginEvents();
     return;
   }
@@ -754,7 +743,7 @@ function render(silent){
     <div class="screen">${body}</div>
     ${renderEmgFab()}
     ${renderNav()}
-    ${S.toast? `<div class="toast">${S.toast}</div>` : ''}
+    ${toastHtml}
   `;
   bindGlobalEvents();
   if(S.tab==='map') initOrUpdateMap();
@@ -776,7 +765,7 @@ function renderSplash(){
 function renderLogin(){
   const approved = S.members.filter(m=>m.status==='approved');
   return `
-  <div class="screen" style="padding-top:36px;">
+  <div class="screen" style="padding-top:calc(36px + env(safe-area-inset-top));">
     <div style="text-align:center; margin-bottom:26px;">
       <div style="width:76px;height:76px;margin:0 auto 12px; overflow:hidden;">${logoImg()}</div>
       <div class="phx-slice" style="font-size:21px;">PHOENIX RIDERS</div>
@@ -846,8 +835,25 @@ async function submitJoinRequest(){
   const phone = document.getElementById('regPhone').value.trim();
   const bike = document.getElementById('regBike').value.trim();
   if(!name) return showToast(tr('nameRequired'));
-  await requestJoin(name, phone, bike);
+  const btn = event && event.target;
+  if(btn) btn.disabled = true;
+  const newMember = await requestJoin(name, phone, bike);
   render();
+  const box = document.getElementById('pinBox');
+  if(box){
+    box.innerHTML = `
+      <div class="modal-bg">
+        <div class="modal">
+          <div class="modal-handle"></div>
+          <div class="modal-title">${I('check',18)} ${tr('joinRequestSent')}</div>
+          <div style="text-align:center; margin:6px 0 18px;">
+            <div style="font-size:12px; color:var(--muted); margin-bottom:8px;">${tr('joinRequestSuffix')}</div>
+            <div class="phx-font" style="font-size:34px; font-weight:800; letter-spacing:8px; color:var(--flame2);">${newMember.pin}</div>
+          </div>
+          <button class="btn primary full" onclick="document.getElementById('pinBox').innerHTML=''">${S.lang==='ar'?'حسناً':'OK'}</button>
+        </div>
+      </div>`;
+  }
 }
 function bindLoginEvents(){}
 
