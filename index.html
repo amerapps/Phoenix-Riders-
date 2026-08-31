@@ -222,7 +222,7 @@ label{font-size:12px; color:var(--muted); margin-bottom:4px; display:block;}
 
 .badge-count{background:var(--danger); color:#fff; font-size:9px; font-weight:800; border-radius:10px; min-width:16px; height:16px; display:flex; align-items:center; justify-content:center; padding:0 4px; position:absolute; top:-4px; inset-inline-start:14px;}
 
-.toast{position:fixed; top:14px; left:50%; transform:translateX(-50%); background:var(--panel2); border:0.5px solid var(--border); padding:10px 18px; border-radius:30px; font-size:13px; z-index:300; box-shadow:0 8px 20px rgba(0,0,0,.4); max-width:88%; text-align:center;}
+.toast{position:fixed; top:calc(14px + env(safe-area-inset-top)); left:50%; transform:translateX(-50%); background:var(--panel2); border:0.5px solid var(--border); padding:10px 18px; border-radius:30px; font-size:13px; z-index:300; box-shadow:0 8px 20px rgba(0,0,0,.4); max-width:88%; text-align:center;}
 
 .divider{height:0.5px; background:var(--sep); margin:14px 0;}
 .hint{font-size:11.5px; color:var(--muted2); margin-top:-4px; margin-bottom:10px;}
@@ -350,7 +350,7 @@ const STRINGS = {
     requestJoin:'Request to Join Phoenix Riders', requestHint:'The leader must approve your request, then you will get a personal PIN',
     enterPin:'Enter PIN', signIn:'Sign In', memberNotFound:'Member not found',
     pendingApproval:'Account pending leader approval', wrongPin:'Wrong PIN, try again',
-    joinRequestSent:'Request sent! Your PIN is:', joinRequestSuffix:'(save it)',
+    joinRequestSent:'Request sent!', joinRequestSuffix:'A leader will review your request and send you your PIN once approved.',
     nameRequired:'Please enter your name',
     navHome:'Home', navRides:'Rides', navLive:'Live', navChat:'Chat', navRiders:'Riders', navAdmin:'Admin',
     greeting:'Hey', members:'Members', onlineNow:'Online now',
@@ -396,6 +396,7 @@ const STRINGS = {
     pendingApprovals:'Pending Approvals', approve:'Approve', reject:'Reject',
     roleMember:'Member', roleModerator:'Moderator', roleAdmin:'Admin', remove:'Remove',
     roleUpdated:'Role updated', confirmRemoveMember:'Are you sure you want to remove this member?', memberApproved:'Member approved',
+    sendPinHint:'Share this PIN with the member so they can sign in.', sendViaWhatsapp:'Send via WhatsApp', copyPin:'Copy PIN', pinCopied:'PIN copied', noPhoneOnFile:'no phone on file',
     activeReports:'Active Reports', noActiveReports:'No emergency reports right now',
     viewLocation:'View Location', markResolved:'Mark Resolved', noExactLocation:'No exact location available',
     resolvedReports:'Resolved Reports',
@@ -432,7 +433,7 @@ const STRINGS = {
     requestJoin:'اطلب الانضمام لـ Phoenix Riders', requestHint:'القائد لازم يوافق على طلبك، وراح توصلك رمز PIN خاص فيك',
     enterPin:'أدخل الـ PIN', signIn:'دخول', memberNotFound:'عضو غير موجود',
     pendingApproval:'الحساب بانتظار موافقة القائد', wrongPin:'PIN غلط، جرب كمان',
-    joinRequestSent:'تم إرسال طلبك! رمزك السري:', joinRequestSuffix:'(احفظه)',
+    joinRequestSent:'تم إرسال طلبك!', joinRequestSuffix:'راح يراجع أحد القادة طلبك، وبعد الموافقة رح يوصلك رمزك السري.',
     nameRequired:'لازم تكتب اسمك',
     navHome:'الرئيسية', navRides:'الطلعات', navLive:'لايف', navChat:'شات', navRiders:'الدراجين', navAdmin:'الإدارة',
     greeting:'أهلا', members:'عدد الأعضاء', onlineNow:'أونلاين هلق',
@@ -478,6 +479,7 @@ const STRINGS = {
     pendingApprovals:'طلبات بانتظار الموافقة', approve:'قبول', reject:'رفض',
     roleMember:'عضو', roleModerator:'مشرف', roleAdmin:'أدمن', remove:'إزالة',
     roleUpdated:'تم تحديث الصلاحية', confirmRemoveMember:'متأكد بدك تشيل هالعضو؟', memberApproved:'تمت الموافقة على العضو',
+    sendPinHint:'شارك هاد الرمز مع العضو حتى يقدر يسجل دخول.', sendViaWhatsapp:'إرسال عبر واتساب', copyPin:'نسخ الرمز', pinCopied:'تم نسخ الرمز', noPhoneOnFile:'ما في رقم مسجل',
     activeReports:'بلاغات نشطة', noActiveReports:'ما في بلاغات طوارئ حالياً',
     viewLocation:'شوف الموقع', markResolved:'تم الحل', noExactLocation:'ما توفر موقع دقيق',
     resolvedReports:'بلاغات محلولة',
@@ -837,7 +839,7 @@ async function submitJoinRequest(){
   if(!name) return showToast(tr('nameRequired'));
   const btn = event && event.target;
   if(btn) btn.disabled = true;
-  const newMember = await requestJoin(name, phone, bike);
+  await requestJoin(name, phone, bike);
   render();
   const box = document.getElementById('pinBox');
   if(box){
@@ -846,10 +848,7 @@ async function submitJoinRequest(){
         <div class="modal">
           <div class="modal-handle"></div>
           <div class="modal-title">${I('check',18)} ${tr('joinRequestSent')}</div>
-          <div style="text-align:center; margin:6px 0 18px;">
-            <div style="font-size:12px; color:var(--muted); margin-bottom:8px;">${tr('joinRequestSuffix')}</div>
-            <div class="phx-font" style="font-size:34px; font-weight:800; letter-spacing:8px; color:var(--flame2);">${newMember.pin}</div>
-          </div>
+          <div style="text-align:center; margin:6px 0 18px; font-size:14px; color:var(--muted);">${tr('joinRequestSuffix')}</div>
           <button class="btn primary full" onclick="document.getElementById('pinBox').innerHTML=''">${S.lang==='ar'?'حسناً':'OK'}</button>
         </div>
       </div>`;
@@ -1914,8 +1913,43 @@ async function approveMember(id){
   if(m) m.status='approved';
   await sSet('members', members);
   S.members = members;
-  showToast(tr('memberApproved'));
   render();
+  if(m) openPinDeliveryModal(m);
+}
+function toWhatsAppNumber(phone){
+  let p = (phone||'').replace(/[^\d+]/g,'');
+  if(p.startsWith('+')) p = p.slice(1);
+  else if(p.startsWith('00')) p = p.slice(2);
+  else if(p.startsWith('0')) p = '962'+p.slice(1);
+  return p;
+}
+function openPinDeliveryModal(m){
+  const box = document.createElement('div');
+  document.body.appendChild(box);
+  const msg = S.lang==='ar'
+    ? `مرحبا ${m.name}! تم قبولك بـ Phoenix Riders 🔥 رمزك السري لتسجيل الدخول هو: ${m.pin}`
+    : `Hi ${m.name}! You've been approved to join Phoenix Riders 🔥 Your sign-in PIN is: ${m.pin}`;
+  const waNum = toWhatsAppNumber(m.phone);
+  const waUrl = `https://wa.me/${waNum}?text=${encodeURIComponent(msg)}`;
+  box.innerHTML = `
+  <div class="modal-bg" onclick="if(event.target===this) this.parentNode.remove()">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <div class="modal-title">${I('check',18)} ${tr('memberApproved')}</div>
+      <div class="hint">${tr('sendPinHint')}</div>
+      <div style="text-align:center; margin:10px 0 18px;">
+        <div style="font-size:12px; color:var(--muted); margin-bottom:8px;">${m.name} · ${m.phone||tr('noPhoneOnFile')}</div>
+        <div class="phx-font" style="font-size:34px; font-weight:800; letter-spacing:8px; color:var(--flame2);">${m.pin}</div>
+      </div>
+      ${m.phone ? `<a class="btn success full" style="display:block; text-align:center; text-decoration:none; margin-bottom:8px;" href="${waUrl}" target="_blank" rel="noopener">${I('send',16)} ${tr('sendViaWhatsapp')}</a>` : ''}
+      <button class="btn full" onclick="copyPin('${m.pin}')">${tr('copyPin')}</button>
+      <button class="btn ghost full" onclick="this.closest('.modal-bg').remove()">${S.lang==='ar'?'إغلاق':'Close'}</button>
+    </div>
+  </div>`;
+}
+async function copyPin(pin){
+  try{ await navigator.clipboard.writeText(pin); showToast(tr('pinCopied')); }
+  catch(e){ showToast(pin); }
 }
 async function removeMember(id){
   if(!confirm(tr('confirmRemoveMember'))) return;
