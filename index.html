@@ -179,7 +179,7 @@ label{font-size:12px; color:var(--muted); margin-bottom:4px; display:block;}
 @keyframes emgpulse{0%{box-shadow:0 0 0 0 rgba(255,69,58,.55);}70%{box-shadow:0 0 0 16px rgba(255,69,58,0);}100%{box-shadow:0 0 0 0 rgba(255,69,58,0);}}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
 
-.modal-bg{position:fixed; inset:0; background:rgba(0,0,0,0.72); backdrop-filter:blur(4px); z-index:100; display:flex; align-items:flex-end; justify-content:center;}
+.modal-bg{position:fixed; inset:0; background:rgba(0,0,0,0.72); backdrop-filter:blur(4px); z-index:1000; display:flex; align-items:flex-end; justify-content:center;}
 .modal{width:100%; max-width:520px; background:var(--bg-elevated); border-radius:20px 20px 0 0; padding:20px 18px calc(20px + env(safe-area-inset-bottom)); max-height:88vh; overflow-y:auto; border:0.5px solid var(--border); border-bottom:none; animation:slideUp .22s ease;}
 @keyframes slideUp{from{transform:translateY(30px); opacity:0;} to{transform:translateY(0); opacity:1;}}
 .modal-handle{width:36px;height:5px;background:var(--panel3); border-radius:4px; margin:0 auto 14px;}
@@ -203,7 +203,7 @@ label{font-size:12px; color:var(--muted); margin-bottom:4px; display:block;}
 .chat-input-row input{margin-bottom:0; flex:1;}
 .send-btn{width:44px;height:44px; border-radius:50%; background:var(--info); border:none; color:#fff; font-size:16px; flex:none; cursor:pointer;}
 
-#map, #servicesMap{width:100%; height:340px; border-radius:var(--radius); overflow:hidden; border:0.5px solid var(--border); margin-bottom:12px;}
+#map, #servicesMap{width:100%; height:340px; border-radius:var(--radius); overflow:hidden; border:0.5px solid var(--border); margin-bottom:12px; position:relative; isolation:isolate; z-index:0;}
 .leaflet-container{background:#111 !important;}
 .live-badge{display:inline-flex; align-items:center; gap:6px; background:rgba(48,209,88,0.14); color:var(--success); padding:5px 10px; border-radius:20px; font-size:11.5px; font-weight:700;}
 .dot-live{width:7px;height:7px;border-radius:50%; background:var(--success); animation:pulse 1.2s infinite;}
@@ -281,8 +281,15 @@ function levelFor(points){
   for(const l of LEVELS){ if(points >= l.min) cur = l; }
   return cur;
 }
-function levelTag(points){
-  const l = levelFor(points);
+function effectiveLevel(m){
+  if(m && m.levelOverride){
+    const found = LEVELS.find(l=>l.key===m.levelOverride);
+    if(found) return found;
+  }
+  return levelFor((m&&m.points)||0);
+}
+function levelTag(m){
+  const l = effectiveLevel(m);
   return `<span class="level-tag" style="color:${l.color};">${I('award',12)}${l.label}</span>`;
 }
 const AMMAN = {lat:31.9539, lng:35.9106};
@@ -397,6 +404,8 @@ const STRINGS = {
     roleMember:'Member', roleModerator:'Moderator', roleAdmin:'Admin', remove:'Remove',
     roleUpdated:'Role updated', confirmRemoveMember:'Are you sure you want to remove this member?', memberApproved:'Member approved',
     sendPinHint:'Share this PIN with the member so they can sign in.', sendViaWhatsapp:'Send via WhatsApp', copyPin:'Copy PIN', pinCopied:'PIN copied', noPhoneOnFile:'no phone on file',
+    rankLabel:'Rank', rankAuto:'Auto (by points)', rankUpdated:'Rank updated',
+    accountSection:'Account', saveName:'Save Name', nameChanged:'Name updated',
     activeReports:'Active Reports', noActiveReports:'No emergency reports right now',
     viewLocation:'View Location', markResolved:'Mark Resolved', noExactLocation:'No exact location available',
     resolvedReports:'Resolved Reports',
@@ -480,6 +489,8 @@ const STRINGS = {
     roleMember:'عضو', roleModerator:'مشرف', roleAdmin:'أدمن', remove:'إزالة',
     roleUpdated:'تم تحديث الصلاحية', confirmRemoveMember:'متأكد بدك تشيل هالعضو؟', memberApproved:'تمت الموافقة على العضو',
     sendPinHint:'شارك هاد الرمز مع العضو حتى يقدر يسجل دخول.', sendViaWhatsapp:'إرسال عبر واتساب', copyPin:'نسخ الرمز', pinCopied:'تم نسخ الرمز', noPhoneOnFile:'ما في رقم مسجل',
+    rankLabel:'المستوى', rankAuto:'تلقائي (حسب النقاط)', rankUpdated:'تم تحديث المستوى',
+    accountSection:'الحساب', saveName:'حفظ الاسم', nameChanged:'تم تحديث الاسم',
     activeReports:'بلاغات نشطة', noActiveReports:'ما في بلاغات طوارئ حالياً',
     viewLocation:'شوف الموقع', markResolved:'تم الحل', noExactLocation:'ما توفر موقع دقيق',
     resolvedReports:'بلاغات محلولة',
@@ -960,7 +971,7 @@ function renderHome(){
           <div style="font-weight:800; color:var(--flame2); width:18px;">${i+1}</div>
           <div class="rider-avatar avatar-initials" style="width:32px;height:32px;font-size:12px;">${initials(r.name)}</div>
           <div style="flex:1; font-size:13px; font-weight:700;">${r.name}</div>
-          ${levelTag(r.points||0)}
+          ${levelTag(r)}
           <div style="font-weight:800; color:var(--flame2); font-size:13px;">${r.points||0}</div>
         </div>
       `).join('') || `<div class="empty" style="padding:10px;">${tr('noPointsYet')}</div>`}
@@ -992,7 +1003,7 @@ function renderRiders(){
           <div class="rider-bike">${bikeLabel(r)}</div>
         </div>
         <div class="rider-meta">
-          ${levelTag(r.points||0)}
+          ${levelTag(r)}
           <div style="margin-top:4px;">${r.points||0} ${tr('points')}</div>
         </div>
       </div>`;
@@ -1004,7 +1015,7 @@ function renderRiderDetail(id){
   const r = S.members.find(x=>x.id===id);
   if(!r) { S.viewingRider=null; return renderRiders(); }
   const b = (r.bikes&&r.bikes[0])||{};
-  const lvl = levelFor(r.points||0);
+  const lvl = effectiveLevel(r);
   return `
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
       <button class="btn ghost" onclick="S.viewingRider=null; render();">‹ ${tr('back')}</button>
@@ -1012,7 +1023,7 @@ function renderRiderDetail(id){
     <div style="text-align:center; margin-bottom:16px;">
       <div class="rider-avatar avatar-initials" style="width:76px;height:76px;font-size:26px; margin:0 auto 10px;">${initials(r.name)}</div>
       <div style="font-size:18px; font-weight:800;">${r.name} ${roleBadge(r.role)}</div>
-      ${levelTag(r.points||0)}
+      ${levelTag(r)}
     </div>
     <div class="stat-grid">
       <div class="stat-box"><div class="stat-num">${r.points||0}</div><div class="stat-label">${I('award',12)} ${tr('points')}</div></div>
@@ -1779,12 +1790,12 @@ async function resolveEmergency(id){
 function renderProfile(){
   const m = me();
   const b = (m.bikes&&m.bikes[0])||{};
-  const lvl = levelFor(m.points||0);
+  const lvl = effectiveLevel(m);
   return `
     <div style="text-align:center; margin-bottom:16px;">
       <div class="rider-avatar avatar-initials" style="width:76px;height:76px;font-size:26px; margin:0 auto 10px;">${initials(m.name)}</div>
       <div style="font-size:18px; font-weight:800;">${m.name} ${roleBadge(m.role)}</div>
-      ${levelTag(m.points||0)}
+      ${levelTag(m)}
     </div>
     <div class="stat-grid">
       <div class="stat-box"><div class="stat-num">${m.points||0}</div><div class="stat-label">${I('award',12)} ${tr('points')}</div></div>
@@ -1800,6 +1811,12 @@ function renderProfile(){
           <div class="tab2 ${S.lang==='ar'?'active':''}" onclick="setLang('ar')">AR</div>
         </div>
       </div>
+    </div>
+
+    <div class="section-title">${I('users',14)} ${tr('accountSection')}</div>
+    <div class="card">
+      <div class="field"><label>${tr('fullName')}</label><input id="pf_name" value="${m.name||''}"></div>
+      <button class="btn full" onclick="changeName()">${tr('saveName')}</button>
     </div>
 
     <div class="section-title">${I('bike',14)} ${tr('myBike')}</div>
@@ -1834,6 +1851,17 @@ async function saveBikeProfile(){
   await sSet('members', members);
   S.members = members;
   showToast(tr('bikeSaved'));
+  render();
+}
+async function changeName(){
+  const val = document.getElementById('pf_name').value.trim();
+  if(!val) return showToast(tr('nameRequired'));
+  const members = await sGet('members', S.members);
+  const mem = members.find(x=>x.id===S.currentUserId);
+  mem.name = val;
+  await sSet('members', members);
+  S.members = members;
+  showToast(tr('nameChanged'));
   render();
 }
 async function changePin(){
@@ -1891,8 +1919,15 @@ function renderAdminMembers(){
           <div class="rider-avatar avatar-initials" style="width:36px;height:36px;font-size:13px;">${initials(m.name)}</div>
           <div style="flex:1;">
             <div class="rider-name">${m.name} ${roleBadge(m.role)}</div>
-            <div class="hint" style="margin:0;">PIN: ${m.pin} · ${m.points||0} ${tr('points')}</div>
+            <div class="hint" style="margin:0;">PIN: ${m.pin} · ${m.points||0} ${tr('points')} · ${levelTag(m)}</div>
           </div>
+        </div>
+        <div class="field" style="margin-top:8px; margin-bottom:0;">
+          <label style="margin-bottom:4px;">${tr('rankLabel')}</label>
+          <select onchange="changeLevelOverride('${m.id}', this.value)" style="margin-bottom:0;">
+            <option value="" ${!m.levelOverride?'selected':''}>${tr('rankAuto')}</option>
+            ${LEVELS.map(l=>`<option value="${l.key}" ${m.levelOverride===l.key?'selected':''}>${l.label}</option>`).join('')}
+          </select>
         </div>
         ${m.role!=='founder' ? `
         <div class="btn-row" style="margin-top:8px;">
@@ -1906,6 +1941,15 @@ function renderAdminMembers(){
       </div>
     `).join('')}
   `;
+}
+async function changeLevelOverride(id, value){
+  const members = await sGet('members', S.members);
+  const m = members.find(x=>x.id===id);
+  if(m) m.levelOverride = value || null;
+  await sSet('members', members);
+  S.members = members;
+  showToast(tr('rankUpdated'));
+  render();
 }
 async function approveMember(id){
   const members = await sGet('members', S.members);
