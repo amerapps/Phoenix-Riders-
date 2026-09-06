@@ -58,7 +58,9 @@ body{
   mask-image:repeating-linear-gradient(to bottom, #000 0 44%, transparent 44% 56%, #000 56% 100%);
 }
 #app{max-width:520px; margin:0 auto; min-height:100vh; position:relative; background:
-  radial-gradient(1100px 460px at 50% -12%, rgba(255,91,30,0.09), transparent 60%), var(--bg);
+  radial-gradient(1100px 460px at 50% -12%, rgba(255,91,30,0.09), transparent 60%),
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cpath d='M-20 210 C 40 160 90 250 150 200 C 190 170 220 220 280 190' fill='none' stroke='%23ff5b1e' stroke-width='3' stroke-dasharray='2 14' stroke-linecap='round' opacity='0.14'/%3E%3Cg transform='translate(28,18) scale(1.6)' fill='none' stroke='%23ffb020' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round' opacity='0.16'%3E%3Ccircle cx='6' cy='17' r='3'/%3E%3Ccircle cx='18' cy='17' r='3'/%3E%3Cpath d='M9 17h4l2-5h3'/%3E%3Cpath d='M9 17 7 12l3-3h3l2 3'/%3E%3Cpath d='M13 9h3'/%3E%3C/g%3E%3Cg transform='translate(150,142) scale(1.3) rotate(8)' fill='none' stroke='%23ff5b1e' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round' opacity='0.13'%3E%3Ccircle cx='6' cy='17' r='3'/%3E%3Ccircle cx='18' cy='17' r='3'/%3E%3Cpath d='M9 17h4l2-5h3'/%3E%3Cpath d='M9 17 7 12l3-3h3l2 3'/%3E%3Cpath d='M13 9h3'/%3E%3C/g%3E%3C/svg%3E") repeat,
+  var(--bg);
   padding-bottom:88px;}
 ::-webkit-scrollbar{width:0;height:0;}
 a{color:inherit;text-decoration:none;}
@@ -380,6 +382,9 @@ const STRINGS = {
     sendPinHint:'Share this PIN with the member so they can sign in.', sendViaWhatsapp:'Send via WhatsApp', copyPin:'Copy PIN', pinCopied:'PIN copied', noPhoneOnFile:'no phone on file',
     rankLabel:'Rank', rankAuto:'Auto (by points)', rankUpdated:'Rank updated',
     accountSection:'Account', saveName:'Save Name', nameChanged:'Name updated',
+    pushNotifications:'Push Notifications', pushNotificationsHint:'Get an alert on this device when a leader posts an official announcement, while the app is open in the background.', notificationsOnLabel:'Notifications are on for this device', enableNotifications:'Enable Notifications',
+    notificationsEnabled:'Notifications enabled', notificationsDenied:'Notifications blocked — enable them in your device settings', notificationsUnsupported:'Notifications are not supported on this device', newAnnouncement:'New Announcement',
+    notificationsTitle:'Notifications', noNotifications:'You\'re all caught up', newJoinRequestTitle:'New join request', newEmergencyTitle:'New emergency report',
     activeReports:'Active Reports', noActiveReports:'No emergency reports right now',
     viewLocation:'View Location', markResolved:'Mark Resolved', noExactLocation:'No exact location available',
     resolvedReports:'Resolved Reports',
@@ -399,6 +404,7 @@ const STRINGS = {
     catAll:'All', catFuel:'Fuel', catWorkshop:'Workshop', catTires:'Tires', catShop:'Bike Shop',
     catCafe:'Café', catHospital:'Hospital', catParking:'Parking', locationName:'Place name',
     locationNamePh:'e.g. Total Station - Dabouq', category:'Category', useMyLocation:'Use My Current Location',
+    tapMapHint:'Tap anywhere on the map to drop a pin, or use the button below.',
     latitude:'Latitude', longitude:'Longitude', addLocationBtn:'Add to Map', locationAdded:'Location added',
     noLocations:'No locations added yet', locationNameRequired:'Place name is required',
     getLocationFailed:'Could not get your location',
@@ -465,6 +471,9 @@ const STRINGS = {
     sendPinHint:'شارك هاد الرمز مع العضو حتى يقدر يسجل دخول.', sendViaWhatsapp:'إرسال عبر واتساب', copyPin:'نسخ الرمز', pinCopied:'تم نسخ الرمز', noPhoneOnFile:'ما في رقم مسجل',
     rankLabel:'المستوى', rankAuto:'تلقائي (حسب النقاط)', rankUpdated:'تم تحديث المستوى',
     accountSection:'الحساب', saveName:'حفظ الاسم', nameChanged:'تم تحديث الاسم',
+    pushNotifications:'تنبيهات الإشعارات', pushNotificationsHint:'بتوصلك تنبيه على هاد الجهاز لما القائد ينشر إعلان رسمي، طالما التطبيق مفتوح ولو بالخلفية.', notificationsOnLabel:'التنبيهات مفعّلة على هاد الجهاز', enableNotifications:'تفعيل التنبيهات',
+    notificationsEnabled:'تم تفعيل التنبيهات', notificationsDenied:'التنبيهات محظورة — فعّلها من إعدادات الجهاز', notificationsUnsupported:'التنبيهات مو مدعومة على هاد الجهاز', newAnnouncement:'إعلان جديد',
+    notificationsTitle:'الإشعارات', noNotifications:'ما في إشعارات جديدة', newJoinRequestTitle:'طلب انضمام جديد', newEmergencyTitle:'بلاغ طوارئ جديد',
     activeReports:'بلاغات نشطة', noActiveReports:'ما في بلاغات طوارئ حالياً',
     viewLocation:'شوف الموقع', markResolved:'تم الحل', noExactLocation:'ما توفر موقع دقيق',
     resolvedReports:'بلاغات محلولة',
@@ -484,6 +493,7 @@ const STRINGS = {
     catAll:'الكل', catFuel:'بنزين', catWorkshop:'ورشة', catTires:'إطارات', catShop:'محل دراجات',
     catCafe:'كافيه', catHospital:'مستشفى', catParking:'موقف', locationName:'اسم المكان',
     locationNamePh:'مثلاً: محطة توتال - ضاحية الرشيد', category:'الفئة', useMyLocation:'استخدم موقعي الحالي',
+    tapMapHint:'دوس بأي مكان على الخريطة لتحديد الموقع، أو استخدم الزر تحت.',
     latitude:'خط العرض', longitude:'خط الطول', addLocationBtn:'إضافة للخريطة', locationAdded:'تمت إضافة المكان',
     noLocations:'ما في أماكن مضافة بعد', locationNameRequired:'لازم اسم للمكان',
     getLocationFailed:'ما قدرنا نوصل لموقعك',
@@ -643,7 +653,11 @@ function startPolling(){
       sGet('emergencies', S.emergencies),
       sList('presence:'),
     ]);
-    S.members = members; S.rides = rides; S.announcements = announcements; S.emergencies = emergencies;
+    S.members = members; S.rides = rides;
+    if(announcements.length && S.announcements.length && announcements[announcements.length-1].id !== S.announcements[announcements.length-1].id){
+      notifyNewAnnouncement(announcements[announcements.length-1]);
+    }
+    S.announcements = announcements; S.emergencies = emergencies;
     const pres = {};
     for(const k of presenceKeys){
       const val = await sGet(k, null);
@@ -652,10 +666,106 @@ function startPolling(){
     S.presence = pres;
     if(S.chatScope){ S.chatMsgs = await sGet(chatKey(S.chatScope), []); }
     if(S.liveRideId){ await pollLiveLocations(); }
+    const isTyping = document.activeElement && ['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName);
+    const modalOpen = !!document.querySelector('.modal-bg');
+    if(isTyping || modalOpen){
+      // Don't tear down the screen while the person is typing or has a
+      // modal (like Add Location) open — just keep data fresh in the
+      // background and update the parts that are safe to update in place.
+      if(S.tab==='map' && S.mapObj) pollLiveLocations();
+      if(S.tab==='services' && servicesMapObj) refreshServiceMarkers();
+      return;
+    }
     render(true);
   }, 5000);
 }
 function chatKey(scope){ return scope==='main' ? 'chat:main' : 'chat:ride:'+scope; }
+function getSeenNotifIds(){
+  try{ return JSON.parse(localStorage.getItem('phx_seen_notifs')||'{}'); }catch(e){ return {}; }
+}
+function markNotifSeen(kind, id){
+  const seen = getSeenNotifIds();
+  seen[kind] = seen[kind] || [];
+  if(!seen[kind].includes(id)) seen[kind].push(id);
+  try{ localStorage.setItem('phx_seen_notifs', JSON.stringify(seen)); }catch(e){}
+}
+function buildNotifications(){
+  const m = me();
+  const seen = getSeenNotifIds();
+  const list = [];
+  S.announcements.forEach(a=>{
+    if(!(seen.announcements||[]).includes(a.id)){
+      list.push({id:a.id, kind:'announcements', icon:'bell', title: tr('newAnnouncement')+': '+a.title, body:a.body, ts:a.ts, tab:'home'});
+    }
+  });
+  if(isLeaderRole(m)){
+    S.members.filter(x=>x.status==='pending').forEach(p=>{
+      if(!(seen.joins||[]).includes(p.id)){
+        list.push({id:p.id, kind:'joins', icon:'users', title:tr('newJoinRequestTitle'), body:p.name, ts:p.createdAt||nowTs(), tab:'admin'});
+      }
+    });
+    S.emergencies.filter(e=>e.status==='active').forEach(em=>{
+      if(!(seen.emergencies||[]).includes(em.id)){
+        list.push({id:em.id, kind:'emergencies', icon:'alert', title:tr('newEmergencyTitle'), body:em.memberName+' — '+em.problemLabel, ts:em.ts||nowTs(), tab:'admin'});
+      }
+    });
+  }
+  list.sort((a,b)=>b.ts-a.ts);
+  return list;
+}
+function openNotificationsPanel(){
+  const notifs = buildNotifications();
+  const box = document.createElement('div');
+  document.body.appendChild(box);
+  box.innerHTML = `
+  <div class="modal-bg" onclick="if(event.target===this) this.parentNode.remove()">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <div class="modal-title">${I('bell',18)} ${tr('notificationsTitle')}</div>
+      ${notifs.length ? notifs.map(n=>`
+        <div class="card" style="cursor:pointer;" onclick="openNotification('${n.kind}','${n.id}','${n.tab}')">
+          <div style="display:flex; align-items:flex-start; gap:10px;">
+            <div style="flex-shrink:0; color:var(--flame2);">${I(n.icon,18)}</div>
+            <div style="flex:1;">
+              <div style="font-weight:800; font-size:13px;">${n.title}</div>
+              <div class="hint" style="margin:2px 0 0; white-space:pre-wrap;">${(n.body||'').slice(0,120)}</div>
+              <div class="hint" style="margin-top:4px;">${timeAgo(n.ts)}</div>
+            </div>
+          </div>
+        </div>
+      `).join('') : `<div class="hint" style="text-align:center; padding:20px 0;">${tr('noNotifications')}</div>`}
+      <button class="btn full" onclick="this.closest('.modal-bg').remove()">${S.lang==='ar'?'إغلاق':'Close'}</button>
+    </div>
+  </div>`;
+}
+function openNotification(kind, id, tab){
+  markNotifSeen(kind, id);
+  document.querySelectorAll('.modal-bg').forEach(x=>x.remove());
+  setTab(tab);
+}
+function lastSeenAnnouncementId(){ return localStorage.getItem('phx_seen_announcement'); }
+function markAnnouncementSeen(id){ try{ localStorage.setItem('phx_seen_announcement', id); }catch(e){} render(); }
+function notificationsEnabled(){ return typeof Notification!=='undefined' && Notification.permission==='granted'; }
+async function requestNotificationPermission(){
+  if(typeof Notification==='undefined'){ showToast(tr('notificationsUnsupported')); return; }
+  try{
+    const perm = await Notification.requestPermission();
+    if(perm==='granted') showToast(tr('notificationsEnabled'));
+    else showToast(tr('notificationsDenied'));
+  }catch(e){ showToast(tr('notificationsUnsupported')); }
+  render();
+}
+function notifyNewAnnouncement(a){
+  if(!notificationsEnabled()) return;
+  try{
+    new Notification(a.title || tr('newAnnouncement'), {
+      body: (a.body||'').slice(0,180),
+      icon: './icon-192.png',
+      badge: './icon-192.png',
+      tag: 'phx-announcement-'+a.id
+    });
+  }catch(e){ console.error('Notification failed', e); }
+}
 async function tryLogin(memberId, pin){
   const m = S.members.find(x=>x.id===memberId);
   if(!m) return showToast(tr('memberNotFound'));
@@ -815,7 +925,7 @@ async function submitJoinRequest(){
 function bindLoginEvents(){}
 function renderTopbar(){
   const m = me();
-  const pendingEmg = S.emergencies.filter(e=>e.status==='active').length;
+  const unreadCount = buildNotifications().length;
   return `
   <div class="topbar">
     <div class="brand">
@@ -826,10 +936,13 @@ function renderTopbar(){
       </div>
     </div>
     <div class="topbar-right">
-      <div class="user-chip" onclick="setTab('profile')" style="cursor:pointer; position:relative;">
+      <div style="position:relative; cursor:pointer;" onclick="openNotificationsPanel()">
+        ${I('bell',20)}
+        ${unreadCount>0 ? `<span class="badge-count">${unreadCount>9?'9+':unreadCount}</span>`:''}
+      </div>
+      <div class="user-chip" onclick="setTab('profile')" style="cursor:pointer;">
         <div class="avatar avatar-initials" style="font-size:10px;">${initials(m?.name)}</div>
         <span>${m?.name||''}</span>
-        ${isLeaderRole(m) && pendingEmg>0 ? `<span class="badge-count">${pendingEmg}</span>`:''}
       </div>
     </div>
   </div>`;
@@ -868,8 +981,20 @@ function renderHome(){
   const upcoming = S.rides.filter(r=>r.status==='upcoming').sort((a,b)=> new Date(a.date)-new Date(b.date))[0];
   const active = S.rides.find(r=>r.status==='active');
   const lastAnn = S.announcements[S.announcements.length-1];
+  const isUnseenAnn = lastAnn && lastSeenAnnouncementId() !== lastAnn.id;
   const leaderboard = [...S.members].filter(x=>x.status==='approved').sort((a,b)=>(b.points||0)-(a.points||0)).slice(0,3);
   return `
+    ${isUnseenAnn ? `
+      <div class="card" style="border:1px solid var(--flame2); background:linear-gradient(135deg, rgba(255,69,0,0.14), rgba(255,69,0,0.03)); margin-bottom:14px;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+          ${I('bell',16)}
+          <span style="font-weight:800; color:var(--flame2); font-size:12px; letter-spacing:.5px;">${tr('newAnnouncement').toUpperCase()}</span>
+        </div>
+        <div style="font-weight:800; margin-bottom:4px;">${lastAnn.title}</div>
+        <div style="font-size:13px; color:var(--muted); white-space:pre-wrap;">${lastAnn.body}</div>
+        <div class="hint" style="margin:6px 0 10px;">${timeAgo(lastAnn.ts)}</div>
+        <button class="btn full" onclick="markAnnouncementSeen('${lastAnn.id}')">${S.lang==='ar'?'تم الاطلاع':'Got it'}</button>
+      </div>` : ''}
     <div class="h1">${tr('greeting')} ${m.name}</div>
     <div class="stat-grid">
       <div class="stat-box"><div class="stat-num">${S.members.filter(x=>x.status==='approved').length}</div><div class="stat-label">${I('users',12)} ${tr('members')}</div></div>
@@ -890,7 +1015,7 @@ function renderHome(){
         <div class="ride-row">${I('pin',14)} ${upcoming.meetingPoint||'—'}</div>
         <div class="ride-row">${I('flag',14)} ${tr('destination')}: ${upcoming.destination||'—'}</div>
       </div>` : `<div class="section-title">${I('flag',14)} ${tr('nextRide')}</div><div class="empty">${tr('noRideScheduled')}</div>`}
-    ${lastAnn ? `
+    ${lastAnn && !isUnseenAnn ? `
       <div class="section-title">${I('bell',14)} ${tr('latestAnnouncement')}</div>
       <div class="card">
         <div style="font-weight:800; margin-bottom:4px;">${lastAnn.title}</div>
@@ -1176,9 +1301,10 @@ function renderLiveMap(){
 function initOrUpdateMap(){
   const el = document.getElementById('map');
   if(!el) return;
-  if(!S.mapObj){
+  if(!S.mapObj || !document.body.contains(S.mapObj.getContainer())){
     S.mapObj = L.map('map', {zoomControl:true, attributionControl:false}).setView([AMMAN.lat, AMMAN.lng], 11);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19}).addTo(S.mapObj);
+    S.liveMarkers = {};
   }
   pollLiveLocations();
 }
@@ -1574,13 +1700,21 @@ function renderServices(){
 }
 let servicesMapObj = null;
 let servicesMarkers = [];
+let servicePlacementMarker = null;
 function initServicesMap(){
   const el = document.getElementById('servicesMap');
   if(!el) return;
   if(!servicesMapObj || !document.body.contains(servicesMapObj.getContainer())){
     servicesMapObj = L.map('servicesMap', {zoomControl:true, attributionControl:false}).setView([AMMAN.lat, AMMAN.lng], 11);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19}).addTo(servicesMapObj);
+    servicesMarkers = [];
+    servicePlacementMarker = null;
+    servicesMapObj.on('click', onServiceMapClick);
   }
+  refreshServiceMarkers();
+}
+function refreshServiceMarkers(){
+  if(!servicesMapObj) return;
   servicesMarkers.forEach(mk=>servicesMapObj.removeLayer(mk));
   servicesMarkers = [];
   const filtered = S.serviceFilter==='all' ? S.services : S.services.filter(s=>s.category===S.serviceFilter);
@@ -1594,14 +1728,30 @@ function initServicesMap(){
   });
   if(bounds.length){ try{ servicesMapObj.fitBounds(bounds, {padding:[30,30], maxZoom:14}); }catch(e){} }
 }
+function onServiceMapClick(e){
+  if(!S.placingLocation || !servicesMapObj) return;
+  const latEl = document.getElementById('sv_lat');
+  const lngEl = document.getElementById('sv_lng');
+  if(!latEl || !lngEl) return;
+  latEl.value = e.latlng.lat.toFixed(5);
+  lngEl.value = e.latlng.lng.toFixed(5);
+  if(servicePlacementMarker) servicesMapObj.removeLayer(servicePlacementMarker);
+  servicePlacementMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(servicesMapObj);
+}
+function closeServiceForm(){
+  S.placingLocation = false;
+  if(servicePlacementMarker && servicesMapObj){ servicesMapObj.removeLayer(servicePlacementMarker); servicePlacementMarker = null; }
+}
 function openServiceForm(){
   const box = document.createElement('div');
   document.body.appendChild(box);
+  S.placingLocation = true;
   box.innerHTML = `
-  <div class="modal-bg" onclick="if(event.target===this) this.parentNode.remove()">
+  <div class="modal-bg" onclick="if(event.target===this){ closeServiceForm(); this.parentNode.remove(); }">
     <div class="modal">
       <div class="modal-handle"></div>
       <div class="modal-title">${I('fuel',18)} ${tr('addLocation')}</div>
+      <div class="hint" style="margin-bottom:10px;">${I('map',12)} ${tr('tapMapHint')}</div>
       <div class="field"><label>${tr('locationName')}</label><input id="sv_name" placeholder="${tr('locationNamePh')}"></div>
       <div class="field"><label>${tr('category')}</label>
         <select id="sv_cat">
@@ -1637,6 +1787,7 @@ async function submitServiceForm(btn){
   services.push({id:uid(), name, category, lat, lng, notes, addedBy:S.currentUserId, ts:nowTs()});
   await sSet('services:locations', services);
   S.services = services;
+  closeServiceForm();
   btn.closest('.modal-bg').remove();
   showToast(tr('locationAdded'));
   render();
@@ -1720,6 +1871,13 @@ function renderProfile(){
     <div class="card">
       <div class="field"><label>${tr('fullName')}</label><input id="pf_name" value="${m.name||''}"></div>
       <button class="btn full" onclick="changeName()">${tr('saveName')}</button>
+    </div>
+    <div class="card">
+      <div class="rider-name" style="margin-bottom:4px;">${I('bell',14)} ${tr('pushNotifications')}</div>
+      <div class="hint" style="margin-bottom:10px;">${tr('pushNotificationsHint')}</div>
+      ${notificationsEnabled()
+        ? `<div class="hint" style="color:var(--success);">${I('check',14)} ${tr('notificationsOnLabel')}</div>`
+        : `<button class="btn full" onclick="requestNotificationPermission()">${I('bell',16)} ${tr('enableNotifications')}</button>`}
     </div>
     <div class="section-title">${I('bike',14)} ${tr('myBike')}</div>
     <div class="card">
