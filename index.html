@@ -668,10 +668,13 @@ function startPolling(){
     if(S.liveRideId){ await pollLiveLocations(); }
     const isTyping = document.activeElement && ['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName);
     const modalOpen = !!document.querySelector('.modal-bg');
-    if(isTyping || modalOpen){
-      // Don't tear down the screen while the person is typing or has a
-      // modal (like Add Location) open — just keep data fresh in the
-      // background and update the parts that are safe to update in place.
+    const onMapTab = S.tab==='map' || S.tab==='services';
+    if(isTyping || modalOpen || onMapTab){
+      // Don't tear down the screen while the person is typing, has a
+      // modal (like Add Location) open, or is looking at a live map —
+      // those hold state (pan/zoom, cursor position) that a full
+      // re-render would wipe out every few seconds. Just keep the data
+      // fresh in the background and update markers in place instead.
       if(S.tab==='map' && S.mapObj) pollLiveLocations();
       if(S.tab==='services' && servicesMapObj) refreshServiceMarkers();
       return;
